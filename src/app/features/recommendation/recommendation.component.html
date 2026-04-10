@@ -1,0 +1,149 @@
+<div class="recommendation-container">
+
+  <!-- Personalized -->
+  <section class="section">
+    <div class="section-header">
+      <h2 class="section-title">Recommended for You</h2>
+      <span class="section-subtitle">Based on your preferences</span>
+    </div>
+
+    <div class="scroll-wrapper">
+      <div class="card-row">
+        @for (item of personalizedItems; track item.city.id) {
+          <div class="card-item">
+            <div class="city-card">
+              <div class="card-image-wrapper">
+                @if (item.city.imageUrl) {
+                  <img [src]="item.city.imageUrl"
+                       [alt]="item.city.name"
+                       class="card-image">
+                }
+                @if (item.similarityScore !== null) {
+                  <span class="score-badge match">{{ formatScore(item.similarityScore) }} match</span>
+                }
+              </div>
+              <div class="card-compact">
+                <h3 class="card-city-name">{{ item.city.name }}</h3>
+                <span class="card-country">{{ item.city.countryName }}</span>
+              </div>
+            </div>
+
+            <div class="city-card-overlay">
+              <div class="card-image-wrapper">
+                @if (item.city.imageUrl) {
+                  <img [src]="item.city.imageUrl"
+                       [alt]="item.city.name"
+                       class="card-image">
+                }
+                @if (item.similarityScore !== null) {
+                  <span class="score-badge match">{{ formatScore(item.similarityScore) }} match</span>
+                }
+              </div>
+              <div class="card-expanded">
+                <h3 class="card-city-name">{{ item.city.name }}</h3>
+                <span class="card-country">{{ item.city.countryName }}</span>
+                @if (item.city.description) {
+                  <p class="card-description">{{ item.city.description }}</p>
+                }
+                <div class="scores-section">
+                  <div class="scores-group">
+                    @for (s of getTopScores(item.city); track s.label) {
+                      <div class="score-item top">
+                        <i [class]="s.icon"></i>
+                        <span class="score-label">{{ s.label }}</span>
+                        <span class="score-value">{{ formatScore(s.value) }}</span>
+                      </div>
+                    }
+                  </div>
+                  <div class="scores-group">
+                    @for (s of getBottomScores(item.city); track s.label) {
+                      <div class="score-item bottom">
+                        <i [class]="s.icon"></i>
+                        <span class="score-label">{{ s.label }}</span>
+                        <span class="score-value">{{ formatScore(s.value) }}</span>
+                      </div>
+                    }
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        }
+      </div>
+    </div>
+  </section>
+
+  <!-- Popular -->
+  <section class="section">
+    <div class="section-header">
+      <h2 class="section-title">Popular Destinations</h2>
+      <span class="section-subtitle">Trending among travelers</span>
+    </div>
+
+    <div class="scroll-wrapper">
+      <div class="card-row">
+        @for (item of popularItems; track item.city.id) {
+          <div class="card-item">
+            <div class="city-card">
+              <div class="card-image-wrapper">
+                @if (item.city.imageUrl) {
+                  <img [src]="item.city.imageUrl"
+                       [alt]="item.city.name"
+                       class="card-image">
+                }
+                @if (item.city.popularity) {
+                  <span class="score-badge popular">&#9733; {{ item.city.popularity }}</span>
+                }
+              </div>
+              <div class="card-compact">
+                <h3 class="card-city-name">{{ item.city.name }}</h3>
+                <span class="card-country">{{ item.city.countryName }}</span>
+              </div>
+            </div>
+
+            <div class="city-card-overlay">
+              <div class="card-image-wrapper">
+                @if (item.city.imageUrl) {
+                  <img [src]="item.city.imageUrl"
+                       [alt]="item.city.name"
+                       class="card-image">
+                }
+                @if (item.city.popularity) {
+                  <span class="score-badge popular">&#9733; {{ item.city.popularity }}</span>
+                }
+              </div>
+              <div class="card-expanded">
+                <h3 class="card-city-name">{{ item.city.name }}</h3>
+                <span class="card-country">{{ item.city.countryName }}</span>
+                @if (item.city.description) {
+                  <p class="card-description">{{ item.city.description }}</p>
+                }
+                <div class="scores-section">
+                  <div class="scores-group">
+                    @for (s of getTopScores(item.city); track s.label) {
+                      <div class="score-item top">
+                        <i [class]="s.icon"></i>
+                        <span class="score-label">{{ s.label }}</span>
+                        <span class="score-value">{{ formatScore(s.value) }}</span>
+                      </div>
+                    }
+                  </div>
+                  <div class="scores-group">
+                    @for (s of getBottomScores(item.city); track s.label) {
+                      <div class="score-item bottom">
+                        <i [class]="s.icon"></i>
+                        <span class="score-label">{{ s.label }}</span>
+                        <span class="score-value">{{ formatScore(s.value) }}</span>
+                      </div>
+                    }
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        }
+      </div>
+    </div>
+  </section>
+
+</div>

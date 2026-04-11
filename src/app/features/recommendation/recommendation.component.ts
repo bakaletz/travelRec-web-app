@@ -1,4 +1,4 @@
-import { Component, OnInit, ChangeDetectorRef } from '@angular/core';
+import { Component, OnInit, ChangeDetectorRef, ViewChild, ElementRef } from '@angular/core';
 import { RecommendationService, Recommendation, City } from './recommendation.service';
 import { CardModule } from 'primeng/card';
 import { ButtonModule } from 'primeng/button';
@@ -21,6 +21,17 @@ export class RecommendationComponent implements OnInit {
   personalizedItems: Recommendation[] = [];
   popularItems: Recommendation[] = [];
 
+  personalizedOffset = 0;
+  popularOffset = 0;
+  canScrollPersonalizedLeft = false;
+  canScrollPersonalizedRight = false;
+  canScrollPopularLeft = false;
+  canScrollPopularRight = false;
+
+  private visibleCount = 5;
+  private cardWidth = 240;
+  private gap = 20;
+
   private scoreConfig: { key: keyof City; label: string; icon: string }[] = [
     { key: 'cultureScore', label: 'Culture', icon: 'pi pi-bookmark' },
     { key: 'foodScore', label: 'Food', icon: 'pi pi-shop' },
@@ -32,6 +43,9 @@ export class RecommendationComponent implements OnInit {
     { key: 'shoppingScore', label: 'Shopping', icon: 'pi pi-shopping-bag' },
   ];
 
+  @ViewChild('personalizedWrapper') personalizedWrapper!: ElementRef<HTMLDivElement>;
+  @ViewChild('popularWrapper') popularWrapper!: ElementRef<HTMLDivElement>;
+
   constructor(
     private service: RecommendationService,
     private cdr: ChangeDetectorRef
@@ -41,6 +55,7 @@ export class RecommendationComponent implements OnInit {
     this.service.getPersonalized({ limit: 10 }).subscribe({
       next: (data) => {
         this.personalizedItems = data;
+        this.updateScrollButtons('personalized');
         this.cdr.detectChanges();
       },
       error: (err) => console.error('Personalized error:', err)
@@ -49,9 +64,65 @@ export class RecommendationComponent implements OnInit {
     this.service.getPopular(10).subscribe({
       next: (data) => {
         this.popularItems = data;
+        this.updateScrollButtons('popular');
         this.cdr.detectChanges();
       },
       error: (err) => console.error('Popular error:', err)
+    });
+  }
+
+  scroll(section: 'personalized' | 'popular', direction: 'left' | 'right'): void {
+    const wrapper = section === 'personalized' ? this.personalizedWrapper : this.popularWrapper;
+    if (!wrapper) return;
+
+    const wrapperWidth = wrapper.nativeElement.offsetWidth;
+    const items = section === 'personalized' ? this.personalizedItems : this.popularItems;
+    const cardW = (wrapperWidth + this.gap) / this.visibleCount;
+    const totalWidth = items.length * cardW - this.gap;
+    const maxOffset = Math.max(0, totalWidth - wrapperWidth);
+    const step = wrapperWidth + this.gap;
+
+    if (section === 'personalized') {
+      if (direction === 'right') {
+        this.personalizedOffset = Math.min(this.personalizedOffset + step, maxOffset);
+      } else {
+        this.personalizedOffset = Math.max(this.personalizedOffset - step, 0);
+      }
+    } else {
+      if (direction === 'right') {
+        this.popularOffset = Math.min(this.popularOffset + step, maxOffset);
+      } else {
+        this.popularOffset = Math.max(this.popularOffset - step, 0);
+      }
+    }
+
+    this.updateScrollButtons(section);
+  }
+
+  getTransform(section: 'personalized' | 'popular'): string {
+    const offset = section === 'personalized' ? this.personalizedOffset : this.popularOffset;
+    return `translateX(-${offset}px)`;
+  }
+
+  private updateScrollButtons(section: 'personalized' | 'popular'): void {
+    setTimeout(() => {
+      const wrapper = section === 'personalized' ? this.personalizedWrapper : this.popularWrapper;
+      if (!wrapper) return;
+
+      const wrapperWidth = wrapper.nativeElement.offsetWidth;
+      const items = section === 'personalized' ? this.personalizedItems : this.popularItems;
+      const cardW = (wrapperWidth + this.gap) / this.visibleCount;
+      const totalWidth = items.length * cardW - this.gap;
+      const offset = section === 'personalized' ? this.personalizedOffset : this.popularOffset;
+
+      if (section === 'personalized') {
+        this.canScrollPersonalizedLeft = offset > 0;
+        this.canScrollPersonalizedRight = items.length > this.visibleCount && offset < totalWidth - wrapperWidth - 1;
+      } else {
+        this.canScrollPopularLeft = offset > 0;
+        this.canScrollPopularRight = items.length > this.visibleCount && offset < totalWidth - wrapperWidth - 1;
+      }
+      this.cdr.detectChanges();
     });
   }
 

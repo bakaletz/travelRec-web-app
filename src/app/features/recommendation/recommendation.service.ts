@@ -48,10 +48,8 @@ export class RecommendationService {
 
   constructor(private http: HttpClient) {}
 
-  // TODO: replace hardcoded userId with actual authenticated user
   getPersonalized(filters?: RecommendationFilters): Observable<Recommendation[]> {
-    let params = this.buildParams(filters);
-    params = params.set('userId', 1);
+    const params = this.buildParams(filters);
     return this.http.get<Recommendation[]>(`${this.apiUrl}/personalized`, { params });
   }
 

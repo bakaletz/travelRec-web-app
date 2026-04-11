@@ -1,11 +1,11 @@
 import { Component, OnInit, ChangeDetectorRef } from '@angular/core';
-import { Router } from '@angular/router';
+import { RouterLink } from '@angular/router';
 import { AuthService } from '../../../core/services/auth.service';
 
 @Component({
   selector: 'app-header',
   standalone: true,
-  imports: [],
+  imports: [RouterLink],
   templateUrl: './header.component.html',
   styleUrls: ['./header.component.scss']
 })
@@ -14,10 +14,10 @@ export class HeaderComponent implements OnInit {
   isLoggedIn = false;
   userName = '';
   avatarUrl: string | null = null;
+  menuOpen = false;
 
   constructor(
     private authService: AuthService,
-    private router: Router,
     private cdr: ChangeDetectorRef
   ) {}
 
@@ -46,11 +46,16 @@ export class HeaderComponent implements OnInit {
       .join('');
   }
 
-  goToLogin(): void {
-    this.router.navigate(['/login']);
+  toggleMenu(): void {
+    this.menuOpen = !this.menuOpen;
   }
 
-  toggleMenu(): void {
-    // TODO: dropdown menu with profile/settings/logout
+  closeMenu(): void {
+    this.menuOpen = false;
+  }
+
+  logout(): void {
+    this.menuOpen = false;
+    this.authService.logout();
   }
 }

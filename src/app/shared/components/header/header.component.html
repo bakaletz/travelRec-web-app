@@ -1,0 +1,35 @@
+<header class="app-header">
+  <div class="header-left">
+    <a class="logo" routerLink="/">TravelRec</a>
+  </div>
+
+  <div class="header-right">
+    @if (isLoggedIn) {
+      <div class="user-profile" (click)="toggleMenu()">
+        <span class="user-name">{{ userName }}</span>
+        @if (avatarUrl) {
+          <img [src]="avatarUrl" [alt]="userName" class="avatar">
+        } @else {
+          <span class="avatar avatar-initials">{{ getInitials() }}</span>
+        }
+      </div>
+
+      @if (menuOpen) {
+        <div class="menu-backdrop" (click)="closeMenu()"></div>
+        <div class="dropdown-menu">
+          <a class="dropdown-item" routerLink="/profile" (click)="closeMenu()">
+            <i class="pi pi-user"></i>
+            Profile
+          </a>
+          <div class="dropdown-divider"></div>
+          <button class="dropdown-item logout" (click)="logout()">
+            <i class="pi pi-sign-out"></i>
+            Log Out
+          </button>
+        </div>
+      }
+    } @else {
+      <a routerLink="/login" class="login-btn">Log In</a>
+    }
+  </div>
+</header>

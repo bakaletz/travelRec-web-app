@@ -1,0 +1,80 @@
+<div class="auth-page">
+  <div class="auth-card">
+    <div class="auth-header">
+      <h1 class="auth-logo">TravelRec</h1>
+      <p class="auth-subtitle">Create your account</p>
+    </div>
+
+    @if (error) {
+      <div class="auth-error">{{ error }}</div>
+    }
+
+    <div class="auth-form">
+      <div class="name-row">
+        <div class="field">
+          <label for="firstName">First Name</label>
+          <input pInputText
+                 id="firstName"
+                 type="text"
+                 [(ngModel)]="firstName"
+                 placeholder="John"
+                 class="w-full">
+        </div>
+        <div class="field">
+          <label for="lastName">Last Name</label>
+          <input pInputText
+                 id="lastName"
+                 type="text"
+                 [(ngModel)]="lastName"
+                 placeholder="Doe"
+                 class="w-full">
+        </div>
+      </div>
+
+      <div class="field">
+        <label for="email">Email</label>
+        <input pInputText
+               id="email"
+               type="email"
+               [(ngModel)]="email"
+               placeholder="you@example.com"
+               class="w-full">
+      </div>
+
+      <div class="field">
+        <label for="password">Password</label>
+        <p-password id="password"
+                    [(ngModel)]="password"
+                    [toggleMask]="true"
+                    placeholder="Min. 6 characters"
+                    styleClass="w-full"
+                    inputStyleClass="w-full">
+        </p-password>
+      </div>
+
+      <div class="field">
+        <label for="confirmPassword">Confirm Password</label>
+        <p-password id="confirmPassword"
+                    [(ngModel)]="confirmPassword"
+                    [feedback]="false"
+                    [toggleMask]="true"
+                    placeholder="Repeat password"
+                    styleClass="w-full"
+                    inputStyleClass="w-full"
+                    (keyup.enter)="onSubmit()">
+        </p-password>
+      </div>
+
+      <p-button label="Create Account"
+                [loading]="loading"
+                (onClick)="onSubmit()"
+                styleClass="w-full">
+      </p-button>
+    </div>
+
+    <div class="auth-footer">
+      <span>Already have an account?</span>
+      <a routerLink="/login" class="auth-link">Sign In</a>
+    </div>
+  </div>
+</div>

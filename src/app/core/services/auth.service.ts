@@ -1,6 +1,7 @@
 import { Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { BehaviorSubject, Observable, tap } from 'rxjs';
+import { Router } from '@angular/router';
 
 export interface UserInfo {
   id: number;
@@ -16,9 +17,19 @@ export interface LoginRequest {
   password: string;
 }
 
+export interface RegisterRequest {
+  email: string;
+  password: string;
+  firstName: string;
+  lastName: string;
+}
+
 export interface AuthResponse {
   token: string;
-  user: UserInfo;
+  email: string;
+  firstName: string;
+  lastName: string;
+  role: string;
 }
 
 @Injectable({
@@ -30,15 +41,30 @@ export class AuthService {
   private currentUserSubject = new BehaviorSubject<UserInfo | null>(this.loadUserFromStorage());
   currentUser$ = this.currentUserSubject.asObservable();
 
-  constructor(private http: HttpClient) {}
+  constructor(
+    private http: HttpClient,
+    private router: Router
+  ) {}
+
+  get currentUser(): UserInfo | null {
+    return this.currentUserSubject.value;
+  }
 
   login(request: LoginRequest): Observable<AuthResponse> {
     return this.http.post<AuthResponse>(`${this.apiUrl}/login`, request).pipe(
-      tap(response => {
-        localStorage.setItem('token', response.token);
-        localStorage.setItem('user', JSON.stringify(response.user));
-        this.currentUserSubject.next(response.user);
-      })
+      tap(response => this.handleAuth(response))
+    );
+  }
+
+  register(request: RegisterRequest): Observable<AuthResponse> {
+    return this.http.post<AuthResponse>(`${this.apiUrl}/register`, request).pipe(
+      tap(response => this.handleAuth(response))
+    );
+  }
+
+  refresh(): Observable<AuthResponse> {
+    return this.http.post<AuthResponse>(`${this.apiUrl}/refresh`, {}).pipe(
+      tap(response => this.handleAuth(response))
     );
   }
 
@@ -46,6 +72,7 @@ export class AuthService {
     localStorage.removeItem('token');
     localStorage.removeItem('user');
     this.currentUserSubject.next(null);
+    this.router.navigate(['/login']);
   }
 
   getToken(): string | null {
@@ -54,6 +81,20 @@ export class AuthService {
 
   isLoggedIn(): boolean {
     return !!this.getToken();
+  }
+
+  private handleAuth(response: AuthResponse): void {
+    const user: UserInfo = {
+      id: 0,
+      email: response.email,
+      firstName: response.firstName,
+      lastName: response.lastName,
+      avatarUrl: null,
+      role: response.role
+    };
+    localStorage.setItem('token', response.token);
+    localStorage.setItem('user', JSON.stringify(user));
+    this.currentUserSubject.next(user);
   }
 
   private loadUserFromStorage(): UserInfo | null {

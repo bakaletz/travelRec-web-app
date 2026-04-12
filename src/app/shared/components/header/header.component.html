@@ -6,7 +6,7 @@
   <div class="header-right">
     @if (isLoggedIn) {
       <div class="user-profile" (click)="toggleMenu()">
-        <span class="user-name">{{ userName }}</span>
+        <span class="user-name" [class.admin]="isAdmin">{{ userName }}</span>
         @if (avatarUrl) {
           <img [src]="avatarUrl" [alt]="userName" class="avatar">
         } @else {

@@ -1,6 +1,4 @@
 import { Routes } from '@angular/router';
-import { RecommendationComponent } from './features/recommendation/recommendation.component';
-import { authGuard } from './core/guards/auth.guard';
 
 export const routes: Routes = [
      {

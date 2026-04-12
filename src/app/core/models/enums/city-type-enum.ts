@@ -1,0 +1,7 @@
+export enum CityType {
+  MEGAPOLIS = 'MEGAPOLIS',
+  LARGE_CITY = 'LARGE_CITY',
+  MEDIUM_CITY = 'MEDIUM_CITY',
+  SMALL_TOWN = 'SMALL_TOWN',
+  RESORT = 'RESORT'
+}

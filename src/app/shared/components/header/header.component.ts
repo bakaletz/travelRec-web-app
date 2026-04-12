@@ -11,6 +11,7 @@ import { AuthService } from '../../../core/services/auth.service';
 })
 export class HeaderComponent implements OnInit {
 
+  isAdmin: boolean = false;
   isLoggedIn = false;
   userName = '';
   avatarUrl: string | null = null;
@@ -27,6 +28,7 @@ export class HeaderComponent implements OnInit {
         this.isLoggedIn = true;
         this.userName = user.firstName + ' ' + user.lastName;
         this.avatarUrl = user.avatarUrl;
+         this.isAdmin = user.role === 'ADMIN'; 
       } else {
         this.isLoggedIn = false;
         this.userName = '';

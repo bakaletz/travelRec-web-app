@@ -1,0 +1,9 @@
+export enum ClimateType {
+    TROPICAL = 'TROPICAL',
+    DRY = 'DRY',
+    CONTINENTAL = 'CONTINENTAL',
+    TEMPERATE = 'TEMPERATE',
+    MEDITERRANEAN = 'MEDITERRANEAN',
+    POLAR = 'POLAR',
+    OCEANIC = 'OCEANIC'
+}

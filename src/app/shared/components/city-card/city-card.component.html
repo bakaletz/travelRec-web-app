@@ -1,0 +1,79 @@
+<div class="card-item">
+  <a class="city-card" [routerLink]="['/cities', city.id]">
+    <div class="card-image-wrapper">
+      @if (city.imageUrl) {
+      <img [src]="city.imageUrl" [alt]="city.name" class="card-image">
+      }
+      @if (score !== null) {
+      <span class="score-badge" [class.match]="scoreLabel === 'match'" [class.popular]="scoreLabel === 'popular'">
+        @if (scoreLabel === 'popular') { &#9733; {{ city.popularity }} }
+        @else { {{ formatScore(score) }} {{ scoreLabel }} }
+      </span>
+      }
+      <button class="add-to-trip-btn" (click)="onAddToTrip($event)">
+        <i class="pi pi-plus"></i>
+      </button>
+    </div>
+    <div class="card-compact">
+      <h3 class="card-city-name">{{ city.name }}</h3>
+      <span class="card-country">{{ city.countryName }}</span>
+    </div>
+  </a>
+
+  <a class="city-card-overlay" [routerLink]="['/cities', city.id]">
+    <div class="card-image-wrapper">
+      @if (city.imageUrl) {
+      <img [src]="city.imageUrl" [alt]="city.name" class="card-image">
+      }
+      @if (score !== null) {
+      <span class="score-badge" [class.match]="scoreLabel === 'match'" [class.popular]="scoreLabel === 'popular'">
+        @if (scoreLabel === 'popular') { &#9733; {{ city.popularity }} }
+        @else { {{ formatScore(score) }} {{ scoreLabel }} }
+      </span>
+      }
+      <button class="add-to-trip-btn" (click)="onAddToTrip($event)">
+        <i class="pi pi-plus"></i>
+      </button>
+    </div>
+    <div class="card-expanded">
+      <h3 class="card-city-name">{{ city.name }}</h3>
+      <span class="card-country">{{ city.countryName }}</span>
+
+      <div class="card-meta">
+        <span class="meta-tag" [ngStyle]="getMetaTagStyle('cityType', city.cityType)">
+          {{ city.cityType | cityTypeLabel }}
+        </span>
+        <span class="meta-tag" [ngStyle]="getMetaTagStyle('climate', city.climateType)">
+          {{ city.climateType | climateTypeLabel }}
+        </span>
+      </div>
+
+      <div class="card-body">
+        @if (city.description) {
+        <p class="card-description">{{ city.description }}</p>
+        }
+        <div class="scores-section">
+          <div class="scores-group">
+            @for (s of getTopScores(); track s.label) {
+            <div class="score-item top">
+              <span class="score-icon">{{ s.icon }}</span>
+              <span class="score-label">{{ s.label }}</span>
+              <span class="score-value">{{ formatScore(s.value) }}</span>
+            </div>
+            }
+          </div>
+          <div class="scores-divider"></div>
+          <div class="scores-group">
+            @for (s of getBottomScores(); track s.label) {
+            <div class="score-item bottom">
+              <span class="score-icon">{{ s.icon }}</span>
+              <span class="score-label">{{ s.label }}</span>
+              <span class="score-value">{{ formatScore(s.value) }}</span>
+            </div>
+            }
+          </div>
+        </div>
+      </div>
+    </div>
+  </a>
+</div>

@@ -1,0 +1,193 @@
+@if (loading) {
+<div class="loading-state">
+  <i class="pi pi-spin pi-spinner"></i>
+  <span>Loading city...</span>
+</div>
+}
+
+@if (error) {
+<div class="error-state">
+  <i class="pi pi-exclamation-triangle"></i>
+  <h3>City not found</h3>
+  <p>The city you're looking for doesn't exist or has been removed.</p>
+  <a routerLink="/recommendations" class="back-link">
+    <i class="pi pi-arrow-left"></i> Back to recommendations
+  </a>
+</div>
+}
+
+@if (city && !loading) {
+<div class="city-detail">
+
+  <!-- Hero -->
+  <section class="hero">
+    @if (city.imageUrl) {
+    <img [src]="city.imageUrl" [alt]="city.name" class="hero-image">
+    }
+    <div class="hero-overlay">
+      <a routerLink="/recommendations" class="back-btn">
+        <i class="pi pi-arrow-left"></i>
+      </a>
+      <div class="hero-content">
+        <h1 class="hero-title">{{ city.name }}</h1>
+        <span class="hero-country">{{ city.countryName }}</span>
+        <div class="hero-meta">
+          <span class="meta-tag" [ngStyle]="getMetaTagStyle('cityType', city.cityType)">
+            {{ city.cityType | cityTypeLabel }}
+          </span>
+          <span class="meta-tag" [ngStyle]="getMetaTagStyle('climate', city.climateType)">
+            {{ city.climateType | climateTypeLabel }}
+          </span>
+          @if (city.population) {
+          <span class="meta-tag population">
+            {{ formatPopulation(city.population) }} people
+          </span>
+          }
+        </div>
+      </div>
+      <button class="hero-add-btn" (click)="onAddToTrip()">
+        <i class="pi pi-plus"></i>
+        <span>Add to Trip</span>
+      </button>
+    </div>
+  </section>
+
+  <!-- Content -->
+  <div class="content-grid">
+
+    <!-- Left column -->
+    <div class="content-main">
+
+      @if (city.description) {
+      <section class="section about">
+        <h2 class="section-title">About</h2>
+        <p class="about-text">{{ city.description }}</p>
+      </section>
+      }
+
+      <!-- Climate info -->
+      @if (city.avgTempSummer || city.avgTempWinter) {
+      <section class="section climate">
+        <h2 class="section-title">Climate</h2>
+        <div class="climate-cards">
+          @if (city.avgTempSummer) {
+          <div class="climate-card summer">
+            <span class="climate-icon">☀️</span>
+            <span class="climate-value">{{ city.avgTempSummer }}°C</span>
+            <span class="climate-label">Summer avg.</span>
+          </div>
+          }
+          @if (city.avgTempWinter) {
+          <div class="climate-card winter">
+            <span class="climate-icon">❄️</span>
+            <span class="climate-value">{{ city.avgTempWinter }}°C</span>
+            <span class="climate-label">Winter avg.</span>
+          </div>
+          }
+        </div>
+      </section>
+      }
+
+      <!-- Nearby cities -->
+      @if (nearbyRecommendations.length > 0) {
+      <section class="section nearby">
+        <h2 class="section-title">Nearby Cities</h2>
+        <div class="nearby-grid">
+          @for (item of nearbyRecommendations; track item.city.id) {
+          <app-city-card
+            [city]="item.city"
+            [score]="item.similarityScore"
+            scoreLabel="match"
+            (addToTrip)="onAddToTripFromNearby($event)">
+          </app-city-card>
+          }
+        </div>
+      </section>
+      }
+
+    </div>
+
+    <!-- Right column - scores -->
+    <aside class="content-sidebar">
+
+      <div class="scores-card">
+        <h3 class="scores-title">City Scores</h3>
+        <div class="scores-list">
+          @for (s of getAllScores(); track s.label) {
+          <div class="score-row">
+            <div class="score-header">
+              <span class="score-icon">{{ s.icon }}</span>
+              <span class="score-label">{{ s.label }}</span>
+              <span class="score-value" [style.color]="getScoreColor(s.value)">
+                {{ formatScore(s.value) }}
+              </span>
+            </div>
+            <div class="score-bar-bg">
+              <div class="score-bar-fill"
+                   [style.width]="getScoreBarWidth(s.value)"
+                   [style.background]="getScoreBarGradient(s.value)">
+              </div>
+            </div>
+          </div>
+          }
+        </div>
+      </div>
+
+      @if (getInfraScores().length > 0) {
+      <div class="scores-card">
+        <h3 class="scores-title">Infrastructure</h3>
+        <div class="scores-list">
+          @for (s of getInfraScores(); track s.label) {
+          <div class="score-row">
+            <div class="score-header">
+              <span class="score-icon">{{ s.icon }}</span>
+              <span class="score-label">{{ s.label }}</span>
+              <span class="score-value" [style.color]="getScoreColor(s.value)">
+                {{ formatScore(s.value) }}
+              </span>
+            </div>
+            <div class="score-bar-bg">
+              <div class="score-bar-fill"
+                   [style.width]="getScoreBarWidth(s.value)"
+                   [style.background]="getScoreBarGradient(s.value)">
+              </div>
+            </div>
+          </div>
+          }
+        </div>
+      </div>
+      }
+
+      <div class="info-card">
+        <h3 class="scores-title">Details</h3>
+        <div class="info-list">
+          <div class="info-row">
+            <span class="info-label">Country</span>
+            <span class="info-value">{{ city.countryName }}</span>
+          </div>
+          @if (city.region) {
+          <div class="info-row">
+            <span class="info-label">Region</span>
+            <span class="info-value">{{ city.region }}</span>
+          </div>
+          }
+          @if (city.population) {
+          <div class="info-row">
+            <span class="info-label">Population</span>
+            <span class="info-value">{{ formatPopulation(city.population) }}</span>
+          </div>
+          }
+          @if (city.ratingCount) {
+          <div class="info-row">
+            <span class="info-label">User ratings</span>
+            <span class="info-value">{{ city.ratingCount }}</span>
+          </div>
+          }
+        </div>
+      </div>
+
+    </aside>
+
+  </div>
+</div>
+}

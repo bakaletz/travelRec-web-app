@@ -16,6 +16,9 @@ export const routes: Routes = [
     loadComponent: () => import('./features/auth/register/register.component')
       .then(m => m.RegisterComponent)
   },
+  { path: 'cities/:id', 
+    loadComponent: () => import('./features/city-detail/city-detail.component')
+      .then(m => m.CityDetailComponent)},
   {
     path: '**',
     redirectTo: ''

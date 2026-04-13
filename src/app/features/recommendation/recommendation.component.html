@@ -30,7 +30,6 @@
       <button class="clear-btn" (click)="clearFilters()" [disabled]="!hasActiveFilters()">Clear all</button>
     </div>
 
-
     <div class="scroll-area">
       @if (canScrollPersonalizedLeft) {
       <button class="scroll-btn left" (click)="scroll('personalized', 'left')">
@@ -41,79 +40,12 @@
       <div class="scroll-wrapper" #personalizedWrapper>
         <div class="card-row" [style.transform]="getTransform('personalized')">
           @for (item of personalizedItems; track item.city.id) {
-          <div class="card-item">
-            <a class="city-card" [routerLink]="['/cities', item.city.id]">
-              <div class="card-image-wrapper">
-                @if (item.city.imageUrl) {
-                <img [src]="item.city.imageUrl" [alt]="item.city.name" class="card-image">
-                }
-                @if (item.similarityScore !== null) {
-                <span class="score-badge match">{{ formatScore(item.similarityScore) }} match</span>
-                }
-                <button class="add-to-trip-btn" (click)="onAddToTrip($event, item.city)">
-                  <i class="pi pi-plus"></i>
-                </button>
-              </div>
-              <div class="card-compact">
-                <h3 class="card-city-name">{{ item.city.name }}</h3>
-                <span class="card-country">{{ item.city.countryName }}</span>
-              </div>
-            </a>
-
-            <a class="city-card-overlay" [routerLink]="['/cities', item.city.id]">
-              <div class="card-image-wrapper">
-                @if (item.city.imageUrl) {
-                <img [src]="item.city.imageUrl" [alt]="item.city.name" class="card-image">
-                }
-                @if (item.similarityScore !== null) {
-                <span class="score-badge match">{{ formatScore(item.similarityScore) }} match</span>
-                }
-                <button class="add-to-trip-btn" (click)="onAddToTrip($event, item.city)">
-                  <i class="pi pi-plus"></i>
-                </button>
-              </div>
-              <div class="card-expanded">
-                <h3 class="card-city-name">{{ item.city.name }}</h3>
-                <span class="card-country">{{ item.city.countryName }}</span>
-
-                <div class="card-meta">
-                  <span class="meta-tag" [ngStyle]="getMetaTagStyle('cityType', item.city.cityType)">
-                    {{ item.city.cityType | cityTypeLabel }}
-                  </span>
-                  <span class="meta-tag" [ngStyle]="getMetaTagStyle('climate', item.city.climateType)">
-                    {{ item.city.climateType | climateTypeLabel }}
-                  </span>
-                </div>
-
-                <div class="card-body">
-                  @if (item.city.description) {
-                  <p class="card-description">{{ item.city.description }}</p>
-                  }
-                  <div class="scores-section">
-                    <div class="scores-group">
-                      @for (s of getTopScores(item.city); track s.label) {
-                      <div class="score-item top">
-                        <span class="score-icon">{{ s.icon }}</span>
-                        <span class="score-label">{{ s.label }}</span>
-                        <span class="score-value">{{ formatScore(s.value) }}</span>
-                      </div>
-                      }
-                    </div>
-                    <div class="scores-divider"></div>
-                    <div class="scores-group">
-                      @for (s of getBottomScores(item.city); track s.label) {
-                      <div class="score-item bottom">
-                        <span class="score-icon">{{ s.icon }}</span>
-                        <span class="score-label">{{ s.label }}</span>
-                        <span class="score-value">{{ formatScore(s.value) }}</span>
-                      </div>
-                      }
-                    </div>
-                  </div>
-                </div>
-              </div>
-            </a>
-          </div>
+          <app-city-card
+            [city]="item.city"
+            [score]="item.similarityScore"
+            scoreLabel="match"
+            (addToTrip)="onAddToTrip($event)">
+          </app-city-card>
           }
         </div>
       </div>
@@ -143,79 +75,12 @@
       <div class="scroll-wrapper" #popularWrapper>
         <div class="card-row" [style.transform]="getTransform('popular')">
           @for (item of popularItems; track item.city.id) {
-          <div class="card-item">
-            <a class="city-card" [routerLink]="['/cities', item.city.id]">
-              <div class="card-image-wrapper">
-                @if (item.city.imageUrl) {
-                <img [src]="item.city.imageUrl" [alt]="item.city.name" class="card-image">
-                }
-                @if (item.city.popularity) {
-                <span class="score-badge popular">&#9733; {{ item.city.popularity }}</span>
-                }
-                <button class="add-to-trip-btn" (click)="onAddToTrip($event, item.city)">
-                  <i class="pi pi-plus"></i>
-                </button>
-              </div>
-              <div class="card-compact">
-                <h3 class="card-city-name">{{ item.city.name }}</h3>
-                <span class="card-country">{{ item.city.countryName }}</span>
-              </div>
-            </a>
-
-            <a class="city-card-overlay" [routerLink]="['/cities', item.city.id]">
-              <div class="card-image-wrapper">
-                @if (item.city.imageUrl) {
-                <img [src]="item.city.imageUrl" [alt]="item.city.name" class="card-image">
-                }
-                @if (item.city.popularity) {
-                <span class="score-badge popular">&#9733; {{ item.city.popularity }}</span>
-                }
-                <button class="add-to-trip-btn" (click)="onAddToTrip($event, item.city)">
-                  <i class="pi pi-plus"></i>
-                </button>
-              </div>
-              <div class="card-expanded">
-                <h3 class="card-city-name">{{ item.city.name }}</h3>
-                <span class="card-country">{{ item.city.countryName }}</span>
-
-                <div class="card-meta">
-                  <span class="meta-tag" [ngStyle]="getMetaTagStyle('cityType', item.city.cityType)">
-                    {{ item.city.cityType | cityTypeLabel }}
-                  </span>
-                  <span class="meta-tag" [ngStyle]="getMetaTagStyle('climate', item.city.climateType)">
-                    {{ item.city.climateType | climateTypeLabel }}
-                  </span>
-                </div>
-
-                <div class="card-body">
-                  @if (item.city.description) {
-                  <p class="card-description">{{ item.city.description }}</p>
-                  }
-                  <div class="scores-section">
-                    <div class="scores-group">
-                      @for (s of getTopScores(item.city); track s.label) {
-                      <div class="score-item top">
-                        <span class="score-icon">{{ s.icon }}</span>
-                        <span class="score-label">{{ s.label }}</span>
-                        <span class="score-value">{{ formatScore(s.value) }}</span>
-                      </div>
-                      }
-                    </div>
-                    <div class="scores-divider"></div>
-                    <div class="scores-group">
-                      @for (s of getBottomScores(item.city); track s.label) {
-                      <div class="score-item bottom">
-                        <span class="score-icon">{{ s.icon }}</span>
-                        <span class="score-label">{{ s.label }}</span>
-                        <span class="score-value">{{ formatScore(s.value) }}</span>
-                      </div>
-                      }
-                    </div>
-                  </div>
-                </div>
-              </div>
-            </a>
-          </div>
+          <app-city-card
+            [city]="item.city"
+            [score]="item.city.popularity ? item.city.popularity : null"
+            scoreLabel="popular"
+            (addToTrip)="onAddToTrip($event)">
+          </app-city-card>
           }
         </div>
       </div>

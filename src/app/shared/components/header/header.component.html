@@ -3,6 +3,11 @@
     <a class="logo" routerLink="/">TravelRec</a>
   </div>
 
+  <nav class="header-nav">
+    <a routerLink="/recommendations" routerLinkActive="active" class="nav-link">Recommendations</a>
+    <a routerLink="/countries" routerLinkActive="active" class="nav-link">Countries</a>
+  </nav>
+
   <div class="header-right">
     @if (isLoggedIn) {
       <div class="user-profile" (click)="toggleMenu()">

@@ -1,5 +1,7 @@
 <div class="recommendation-container">
 
+
+  @if (isAuthenticated) {
   <!-- Personalized -->
   <section class="section">
     <div class="section-header">
@@ -30,34 +32,12 @@
       <button class="clear-btn" (click)="clearFilters()" [disabled]="!hasActiveFilters()">Clear all</button>
     </div>
 
-    <div class="scroll-area">
-      @if (canScrollPersonalizedLeft) {
-      <button class="scroll-btn left" (click)="scroll('personalized', 'left')">
-        <i class="pi pi-chevron-left"></i>
-      </button>
-      }
-
-      <div class="scroll-wrapper" #personalizedWrapper>
-        <div class="card-row" [style.transform]="getTransform('personalized')">
-          @for (item of personalizedItems; track item.city.id) {
-          <app-city-card
-            [city]="item.city"
-            [score]="item.similarityScore"
-            scoreLabel="match"
-            (addToTrip)="onAddToTrip($event)">
-          </app-city-card>
-          }
-        </div>
-      </div>
-
-      @if (canScrollPersonalizedRight) {
-      <button class="scroll-btn right" (click)="scroll('personalized', 'right')">
-        <i class="pi pi-chevron-right"></i>
-      </button>
-      }
-    </div>
+    <app-city-carousel [cities]="personalizedCities" [score]="personalizedScoreFn" scoreLabel="match"
+      (addToTrip)="onAddToTrip($event)">
+    </app-city-carousel>
   </section>
 
+  }
   <!-- Popular -->
   <section class="section">
     <div class="section-header">
@@ -65,32 +45,9 @@
       <span class="section-subtitle">Trending among travelers</span>
     </div>
 
-    <div class="scroll-area">
-      @if (canScrollPopularLeft) {
-      <button class="scroll-btn left" (click)="scroll('popular', 'left')">
-        <i class="pi pi-chevron-left"></i>
-      </button>
-      }
-
-      <div class="scroll-wrapper" #popularWrapper>
-        <div class="card-row" [style.transform]="getTransform('popular')">
-          @for (item of popularItems; track item.city.id) {
-          <app-city-card
-            [city]="item.city"
-            [score]="item.city.popularity ? item.city.popularity : null"
-            scoreLabel="popular"
-            (addToTrip)="onAddToTrip($event)">
-          </app-city-card>
-          }
-        </div>
-      </div>
-
-      @if (canScrollPopularRight) {
-      <button class="scroll-btn right" (click)="scroll('popular', 'right')">
-        <i class="pi pi-chevron-right"></i>
-      </button>
-      }
-    </div>
+    <app-city-carousel [cities]="popularCities" [score]="popularScoreFn" scoreLabel="popular"
+      (addToTrip)="onAddToTrip($event)">
+    </app-city-carousel>
   </section>
 
 </div>

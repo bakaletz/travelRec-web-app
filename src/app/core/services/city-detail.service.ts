@@ -11,7 +11,7 @@ export class CityService {
 
   private apiUrl = `${environment.apiUrl}/cities`;
 
-  constructor(private http: HttpClient) {}
+  constructor(private http: HttpClient) { }
 
   getById(id: number): Observable<City> {
     return this.http.get<City>(`${this.apiUrl}/${id}`);
@@ -34,5 +34,19 @@ export class CityService {
   search(query: string): Observable<City[]> {
     const params = new HttpParams().set('search', query);
     return this.http.get<City[]>(this.apiUrl, { params });
+  }
+
+  getByCountryId(countryId: number): Observable<City[]> {
+    return this.http.get<City[]>(this.apiUrl, {
+      params: { countryId: countryId.toString() }
+    });
+  }
+
+  create(data: any): Observable<City> {
+    return this.http.post<City>(this.apiUrl, data);
+  }
+
+  update(id: number, data: any): Observable<City> {
+    return this.http.put<City>(`${this.apiUrl}/${id}`, data);
   }
 }

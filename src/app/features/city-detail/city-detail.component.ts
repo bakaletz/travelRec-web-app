@@ -1,18 +1,46 @@
 import { Component, OnInit, ChangeDetectorRef } from '@angular/core';
 import { CommonModule } from '@angular/common';
+import { FormsModule } from '@angular/forms';
 import { ActivatedRoute, RouterModule } from '@angular/router';
 import { CityService } from '../../core/services/city-detail.service';
+import { AuthService } from '../../core/services/auth.service';
 import { RecommendationService } from '../../core/services/recommendation.service';
 import { City } from '../../core/models/city.model';
 import { Recommendation } from '../../core/models/recommendation.model';
 import { CityTypeLabelPipe } from '../../shared/pipes/city-type-label.pipe';
 import { ClimateTypeLabelPipe } from '../../shared/pipes/climate-type-label.pipe';
-import { CityCardComponent } from '../../shared/components/city-card/city-card.component';
+import { CityCarouselComponent } from '../../shared/components/city/city-carousel/city-carousel.component';
 
 interface ScoreEntry {
   label: string;
   icon: string;
   value: number;
+}
+
+interface CityEditForm {
+  name: string;
+  region: string;
+  cityType: string;
+  population: number | null;
+  climateType: string;
+  avgTempSummer: number | null;
+  avgTempWinter: number | null;
+  latitude: number | null;
+  longitude: number | null;
+  baseCostLevel: number;
+  baseSafetyScore: number;
+  baseCultureScore: number;
+  baseFoodScore: number;
+  baseNightlifeScore: number;
+  baseNatureScore: number;
+  baseBeachScore: number;
+  baseArchitectureScore: number;
+  baseShoppingScore: number;
+  publicTransportScore: number;
+  walkabilityScore: number;
+  description: string;
+  imageUrl: string;
+  [key: string]: string | number | null;
 }
 
 @Component({
@@ -21,9 +49,10 @@ interface ScoreEntry {
   imports: [
     CommonModule,
     RouterModule,
+    FormsModule,
     CityTypeLabelPipe,
     ClimateTypeLabelPipe,
-    CityCardComponent
+    CityCarouselComponent
   ],
   templateUrl: './city-detail.component.html',
   styleUrls: ['./city-detail.component.scss']
@@ -34,6 +63,49 @@ export class CityDetailComponent implements OnInit {
   nearbyRecommendations: Recommendation[] = [];
   loading = true;
   error = false;
+  isAdmin = false;
+
+  editDialogOpen = false;
+  editSaving = false;
+  editFormError = '';
+  editForm: CityEditForm = this.emptyEditForm();
+
+  cityTypeOptions = [
+    { label: 'Megapolis', value: 'MEGAPOLIS' },
+    { label: 'Large City', value: 'LARGE_CITY' },
+    { label: 'Medium City', value: 'MEDIUM_CITY' },
+    { label: 'Small Town', value: 'SMALL_TOWN' },
+    { label: 'Resort', value: 'RESORT' },
+  ];
+
+  climateTypeOptions = [
+    { label: 'Tropical', value: 'TROPICAL' },
+    { label: 'Dry', value: 'DRY' },
+    { label: 'Continental', value: 'CONTINENTAL' },
+    { label: 'Temperate', value: 'TEMPERATE' },
+    { label: 'Mediterranean', value: 'MEDITERRANEAN' },
+    { label: 'Polar', value: 'POLAR' },
+    { label: 'Oceanic', value: 'OCEANIC' },
+  ];
+
+  scoreFields = [
+    { key: 'baseCultureScore', label: 'Culture' },
+    { key: 'baseFoodScore', label: 'Food' },
+    { key: 'baseNightlifeScore', label: 'Nightlife' },
+    { key: 'baseNatureScore', label: 'Nature' },
+    { key: 'baseSafetyScore', label: 'Safety' },
+    { key: 'baseCostLevel', label: 'Cost Level' },
+    { key: 'baseBeachScore', label: 'Beach' },
+    { key: 'baseArchitectureScore', label: 'Architecture' },
+    { key: 'baseShoppingScore', label: 'Shopping' },
+    { key: 'publicTransportScore', label: 'Public Transport' },
+    { key: 'walkabilityScore', label: 'Walkability' },
+  ];
+
+  nearbyScoreFn = (city: City): number | null => {
+    const item = this.nearbyRecommendations.find(i => i.city.id === city.id);
+    return item ? item.similarityScore : null;
+  };
 
   private scoreConfig: { key: keyof City; label: string; icon: string }[] = [
     { key: 'cultureScore', label: 'Culture', icon: '🏛️' },
@@ -73,11 +145,17 @@ export class CityDetailComponent implements OnInit {
   constructor(
     private route: ActivatedRoute,
     private cityService: CityService,
+    private authService: AuthService,
     private recommendationService: RecommendationService,
     private cdr: ChangeDetectorRef
   ) {}
 
   ngOnInit(): void {
+    this.authService.currentUser$.subscribe(user => {
+      this.isAdmin = user?.role === 'ADMIN';
+      this.cdr.detectChanges();
+    });
+
     this.route.params.subscribe(params => {
       const id = +params['id'];
       if (isNaN(id)) {
@@ -89,6 +167,94 @@ export class CityDetailComponent implements OnInit {
       this.loadCity(id);
     });
   }
+
+  get nearbyCities(): City[] {
+    return this.nearbyRecommendations.map(i => i.city);
+  }
+
+  // ── Edit dialog ─────────────────────────────────
+
+  openEditDialog(): void {
+    if (!this.city) return;
+    this.editForm = {
+      name: this.city.name,
+      region: this.city.region ?? '',
+      cityType: this.city.cityType,
+      population: this.city.population ?? null,
+      climateType: this.city.climateType,
+      avgTempSummer: this.city.avgTempSummer ?? null,
+      avgTempWinter: this.city.avgTempWinter ?? null,
+      latitude: this.city.latitude ?? null,
+      longitude: this.city.longitude ?? null,
+      baseCultureScore: this.city.cultureScore ?? 0.5,
+      baseFoodScore: this.city.foodScore ?? 0.5,
+      baseNightlifeScore: this.city.nightlifeScore ?? 0.5,
+      baseNatureScore: this.city.natureScore ?? 0.5,
+      baseSafetyScore: this.city.safetyScore ?? 0.5,
+      baseCostLevel: this.city.costLevel ?? 0.5,
+      baseBeachScore: this.city.beachScore ?? 0.5,
+      baseArchitectureScore: this.city.architectureScore ?? 0.5,
+      baseShoppingScore: this.city.shoppingScore ?? 0.5,
+      publicTransportScore: this.city.publicTransportScore ?? 0.5,
+      walkabilityScore: this.city.walkabilityScore ?? 0.5,
+      description: this.city.description ?? '',
+      imageUrl: this.city.imageUrl ?? '',
+    };
+    this.editFormError = '';
+    this.editDialogOpen = true;
+  }
+
+  closeEditDialog(): void {
+    this.editDialogOpen = false;
+  }
+
+  submitEditForm(): void {
+    if (!this.editForm.name.trim()) {
+      this.editFormError = 'City name is required.';
+      return;
+    }
+    if (!this.editForm.cityType) {
+      this.editFormError = 'City type is required.';
+      return;
+    }
+    if (!this.editForm.climateType) {
+      this.editFormError = 'Climate type is required.';
+      return;
+    }
+    if (this.editForm.latitude === null || this.editForm.longitude === null) {
+      this.editFormError = 'Latitude and longitude are required.';
+      return;
+    }
+
+    this.editSaving = true;
+    this.editFormError = '';
+
+    const payload = {
+      ...this.editForm,
+      countryId: this.city!.countryId,
+    };
+
+    this.cityService.update(this.city!.id, payload).subscribe({
+      next: (updated) => {
+        this.city = updated;
+        this.editSaving = false;
+        this.editDialogOpen = false;
+        this.cdr.detectChanges();
+      },
+      error: (err) => {
+        this.editFormError = err.error?.message || 'Failed to update city.';
+        this.editSaving = false;
+        this.cdr.detectChanges();
+      }
+    });
+  }
+
+  getEditScorePercent(key: string): string {
+    const val = this.editForm[key] ?? 0;
+    return ((val as number) * 100).toFixed(0);
+  }
+
+  // ── Scores ──────────────────────────────────────
 
   getAllScores(): ScoreEntry[] {
     if (!this.city) return [];
@@ -160,6 +326,8 @@ export class CityDetailComponent implements OnInit {
     console.log('Add to trip:', city.name);
   }
 
+  // ── Private ─────────────────────────────────────
+
   private loadCity(id: number): void {
     this.loading = true;
     this.error = false;
@@ -189,5 +357,32 @@ export class CityDetailComponent implements OnInit {
       },
       error: () => this.nearbyRecommendations = []
     });
+  }
+
+  private emptyEditForm(): CityEditForm {
+    return {
+      name: '',
+      region: '',
+      cityType: '',
+      population: null,
+      climateType: '',
+      avgTempSummer: null,
+      avgTempWinter: null,
+      latitude: null,
+      longitude: null,
+      baseCostLevel: 0.5,
+      baseSafetyScore: 0.5,
+      baseCultureScore: 0.5,
+      baseFoodScore: 0.5,
+      baseNightlifeScore: 0.5,
+      baseNatureScore: 0.5,
+      baseBeachScore: 0.5,
+      baseArchitectureScore: 0.5,
+      baseShoppingScore: 0.5,
+      publicTransportScore: 0.5,
+      walkabilityScore: 0.5,
+      description: '',
+      imageUrl: ''
+    };
   }
 }

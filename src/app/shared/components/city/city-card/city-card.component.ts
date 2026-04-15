@@ -1,9 +1,9 @@
 import { Component, Input, Output, EventEmitter } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { RouterModule } from '@angular/router';
-import { City } from '../../../core/models/city.model';
-import { CityTypeLabelPipe } from '../../pipes/city-type-label.pipe';
-import { ClimateTypeLabelPipe } from '../../pipes/climate-type-label.pipe';
+import { City } from '../../../../core/models/city.model';
+import { CityTypeLabelPipe } from '../../../pipes/city-type-label.pipe';
+import { ClimateTypeLabelPipe } from '../../../pipes/climate-type-label.pipe';
 
 interface ScoreEntry {
   label: string;

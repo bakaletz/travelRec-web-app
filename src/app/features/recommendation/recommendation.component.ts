@@ -1,4 +1,4 @@
-import { Component, OnInit, ChangeDetectorRef, ViewChild, ElementRef } from '@angular/core';
+import { Component, OnInit, ChangeDetectorRef } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { CommonModule } from '@angular/common';
 import { RouterModule } from '@angular/router';
@@ -7,7 +7,8 @@ import { Recommendation } from '../../core/models/recommendation.model';
 import { RecommendationFilters } from '../../core/models/recommendation-filter.model';
 import { City } from '../../core/models/city.model';
 import { MultiSelectModule } from 'primeng/multiselect';
-import { CityCardComponent } from '../../shared/components/city-card/city-card.component';
+import { CityCarouselComponent } from '../../shared/components/city/city-carousel/city-carousel.component';
+import { AuthService } from '../../core/services/auth.service';
 
 interface FilterOption {
   label: string;
@@ -22,12 +23,14 @@ interface FilterOption {
     CommonModule,
     RouterModule,
     MultiSelectModule,
-    CityCardComponent
+    CityCarouselComponent
   ],
   templateUrl: './recommendation.component.html',
   styleUrls: ['./recommendation.component.scss']
 })
 export class RecommendationComponent implements OnInit {
+
+  isAuthenticated = false;
 
   personalizedItems: Recommendation[] = [];
   popularItems: Recommendation[] = [];
@@ -64,61 +67,42 @@ export class RecommendationComponent implements OnInit {
     { label: 'Oceanic', value: 'OCEANIC' }
   ];
 
-  personalizedOffset = 0;
-  popularOffset = 0;
-  canScrollPersonalizedLeft = false;
-  canScrollPersonalizedRight = false;
-  canScrollPopularLeft = false;
-  canScrollPopularRight = false;
+  personalizedScoreFn = (city: City): number | null => {
+    const item = this.personalizedItems.find(i => i.city.id === city.id);
+    return item ? item.similarityScore : null;
+  };
 
-  private visibleCount = 5;
-  private gap = 20;
-
-  @ViewChild('personalizedWrapper') personalizedWrapper!: ElementRef<HTMLDivElement>;
-  @ViewChild('popularWrapper') popularWrapper!: ElementRef<HTMLDivElement>;
+  popularScoreFn = (city: City): number | null => {
+    return city.popularity ?? null;
+  };
 
   constructor(
     private service: RecommendationService,
+    private authService: AuthService,
     private cdr: ChangeDetectorRef
-  ) {}
+  ) { }
 
   ngOnInit(): void {
-    this.loadPersonalized();
+    this.authService.currentUser$.subscribe(user => {
+      this.isAuthenticated = !!user;
+      if (this.isAuthenticated) {
+        this.loadPersonalized();
+      }
+      this.cdr.detectChanges();
+    });
     this.loadPopular();
   }
 
+  get personalizedCities(): City[] {
+    return this.personalizedItems.map(i => i.city);
+  }
+
+  get popularCities(): City[] {
+    return this.popularItems.map(i => i.city);
+  }
+
   applyFilters(): void {
-    this.personalizedOffset = 0;
     this.loadPersonalized();
-  }
-
-  scroll(section: 'personalized' | 'popular', direction: 'left' | 'right'): void {
-    const wrapper = section === 'personalized' ? this.personalizedWrapper : this.popularWrapper;
-    if (!wrapper) return;
-
-    const wrapperWidth = wrapper.nativeElement.offsetWidth;
-    const items = section === 'personalized' ? this.personalizedItems : this.popularItems;
-    const cardW = (wrapperWidth + this.gap) / this.visibleCount;
-    const totalWidth = items.length * cardW - this.gap;
-    const maxOffset = Math.max(0, totalWidth - wrapperWidth);
-    const step = wrapperWidth + this.gap;
-
-    if (section === 'personalized') {
-      this.personalizedOffset = direction === 'right'
-        ? Math.min(this.personalizedOffset + step, maxOffset)
-        : Math.max(this.personalizedOffset - step, 0);
-    } else {
-      this.popularOffset = direction === 'right'
-        ? Math.min(this.popularOffset + step, maxOffset)
-        : Math.max(this.popularOffset - step, 0);
-    }
-
-    this.updateScrollButtons(section);
-  }
-
-  getTransform(section: 'personalized' | 'popular'): string {
-    const offset = section === 'personalized' ? this.personalizedOffset : this.popularOffset;
-    return `translateX(-${offset}px)`;
   }
 
   hasActiveFilters(): boolean {
@@ -147,8 +131,6 @@ export class RecommendationComponent implements OnInit {
     this.service.getPersonalized(filters).subscribe({
       next: (data) => {
         this.personalizedItems = data;
-        this.personalizedOffset = 0;
-        this.updateScrollButtons('personalized');
         this.cdr.detectChanges();
       },
       error: (err) => console.error('Personalized error:', err)
@@ -159,32 +141,9 @@ export class RecommendationComponent implements OnInit {
     this.service.getPopular(10).subscribe({
       next: (data) => {
         this.popularItems = data;
-        this.updateScrollButtons('popular');
         this.cdr.detectChanges();
       },
       error: (err) => console.error('Popular error:', err)
-    });
-  }
-
-  private updateScrollButtons(section: 'personalized' | 'popular'): void {
-    setTimeout(() => {
-      const wrapper = section === 'personalized' ? this.personalizedWrapper : this.popularWrapper;
-      if (!wrapper) return;
-
-      const wrapperWidth = wrapper.nativeElement.offsetWidth;
-      const items = section === 'personalized' ? this.personalizedItems : this.popularItems;
-      const cardW = (wrapperWidth + this.gap) / this.visibleCount;
-      const totalWidth = items.length * cardW - this.gap;
-      const offset = section === 'personalized' ? this.personalizedOffset : this.popularOffset;
-
-      if (section === 'personalized') {
-        this.canScrollPersonalizedLeft = offset > 0;
-        this.canScrollPersonalizedRight = items.length > this.visibleCount && offset < totalWidth - wrapperWidth - 1;
-      } else {
-        this.canScrollPopularLeft = offset > 0;
-        this.canScrollPopularRight = items.length > this.visibleCount && offset < totalWidth - wrapperWidth - 1;
-      }
-      this.cdr.detectChanges();
     });
   }
 }

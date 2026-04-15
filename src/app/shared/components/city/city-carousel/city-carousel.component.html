@@ -1,0 +1,26 @@
+<div class="scroll-area">
+  @if (canScrollLeft) {
+  <button class="scroll-btn left" (click)="scroll('left')">
+    <i class="pi pi-chevron-left"></i>
+  </button>
+  }
+
+  <div class="scroll-wrapper" #wrapper>
+    <div class="card-row" [style.transform]="getTransform()">
+      @for (city of cities; track city.id) {
+      <app-city-card
+        [city]="city"
+        [score]="getScore(city)"
+        [scoreLabel]="scoreLabel"
+        (addToTrip)="onAddToTrip($event)">
+      </app-city-card>
+      }
+    </div>
+  </div>
+
+  @if (canScrollRight) {
+  <button class="scroll-btn right" (click)="scroll('right')">
+    <i class="pi pi-chevron-right"></i>
+  </button>
+  }
+</div>

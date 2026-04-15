@@ -38,12 +38,12 @@
   }
 }
 
-// Hero section
+// Hero
 .hero {
   position: relative;
-  height: 380px;
+  height: 420px;
   overflow: hidden;
-  border-radius: 0 0 20px 20px;
+  border-radius: 0 0 24px 24px;
 }
 
 .hero-image {
@@ -55,17 +55,22 @@
 .hero-overlay {
   position: absolute;
   inset: 0;
-  background: linear-gradient(to top, rgba(0, 0, 0, 0.7) 0%, rgba(0, 0, 0, 0.1) 50%, rgba(0, 0, 0, 0.3) 100%);
+  background: linear-gradient(
+    to top,
+    rgba(0, 0, 0, 0.75) 0%,
+    rgba(0, 0, 0, 0.08) 50%,
+    rgba(0, 0, 0, 0.25) 100%
+  );
   display: flex;
   flex-direction: column;
   justify-content: flex-end;
-  padding: 2rem 2.5rem;
+  padding: 2.5rem 3rem;
 }
 
-.back-btn {
+.back-btn,
+.edit-country-btn {
   position: absolute;
   top: 1.5rem;
-  left: 1.5rem;
   width: 40px;
   height: 40px;
   border-radius: 50%;
@@ -89,85 +94,32 @@
   }
 }
 
-.hero-actions {
-  position: absolute;
-  top: 1.5rem;
+.back-btn {
+  left: 1.5rem;
+}
+
+.edit-country-btn {
   right: 1.5rem;
-  display: flex;
-  align-items: center;
-  gap: 0.5rem;
-}
-
-.hero-edit-btn {
-  width: 40px;
-  height: 40px;
-  border-radius: 50%;
-  background: rgba(255, 255, 255, 0.2);
-  backdrop-filter: blur(8px);
-  border: none;
-  cursor: pointer;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  color: #fff;
-  transition: background 0.15s ease;
-
-  i {
-    font-size: 0.9rem;
-  }
-
-  &:hover {
-    background: rgba(255, 255, 255, 0.35);
-  }
-}
-
-.hero-add-btn {
-  display: flex;
-  align-items: center;
-  gap: 0.5rem;
-  padding: 0.6rem 1.2rem;
-  border-radius: 10px;
-  background: rgba(255, 255, 255, 0.95);
-  border: none;
-  cursor: pointer;
-  font-size: 0.85rem;
-  font-weight: 600;
-  color: var(--primary-color, #3b82f6);
-  transition: background 0.15s ease, transform 0.15s ease;
-
-  i {
-    font-size: 0.8rem;
-  }
-
-  &:hover {
-    background: #fff;
-    transform: scale(1.03);
-  }
-
-  &:active {
-    transform: scale(0.98);
-  }
 }
 
 .hero-content {
-  .hero-title {
-    font-size: 2.5rem;
-    font-weight: 700;
-    color: #fff;
-    margin: 0 0 0.25rem 0;
-    text-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
+  .hero-code {
+    display: inline-block;
+    font-size: 0.85rem;
+    font-weight: 600;
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+    color: rgba(255, 255, 255, 0.6);
+    margin-bottom: 0.35rem;
   }
 
-  .hero-country {
-    font-size: 1.1rem;
-    color: rgba(255, 255, 255, 0.85);
-    text-decoration: none;
-    transition: color 0.15s ease;
-
-     &:hover {
-      color: #fff;
-      text-decoration: underline;
-    }
+  .hero-title {
+    font-size: 3rem;
+    font-weight: 800;
+    color: #fff;
+    margin: 0 0 0.6rem 0;
+    text-shadow: 0 2px 12px rgba(0, 0, 0, 0.35);
+    letter-spacing: -0.02em;
   }
 }
 
@@ -175,7 +127,6 @@
   display: flex;
   flex-wrap: wrap;
   gap: 0.5rem;
-  margin-top: 0.75rem;
 
   .meta-tag {
     font-size: 0.8rem;
@@ -183,32 +134,31 @@
     padding: 0.3rem 0.75rem;
     border-radius: 6px;
     backdrop-filter: blur(4px);
+    display: inline-flex;
+    align-items: center;
+    gap: 0.35rem;
+
+    i {
+      font-size: 0.75rem;
+    }
   }
 
-  .population {
+  .info-tag {
     color: rgba(255, 255, 255, 0.9);
     background: rgba(255, 255, 255, 0.15);
     border: 1px solid rgba(255, 255, 255, 0.25);
   }
 }
 
-// Content grid
-.content-grid {
-  display: grid;
-  grid-template-columns: 1fr 340px;
-  gap: 2rem;
-  padding: 2rem 2.5rem;
+// Content
+.content-body {
   max-width: 1200px;
   margin: 0 auto;
-}
-
-// Main content
-.content-main {
-  min-width: 0;
+  padding: 2rem 2.5rem 3rem;
 }
 
 .section {
-  margin-bottom: 2rem;
+  margin-bottom: 2.5rem;
   position: relative;
   z-index: 1;
 
@@ -218,163 +168,136 @@
 }
 
 .section-title {
-  font-size: 1.25rem;
+  font-size: 1.3rem;
   font-weight: 700;
-  margin: 0 0 1rem 0;
+  margin: 0;
   color: var(--text-color);
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+
+  .city-count {
+    font-size: 0.8rem;
+    font-weight: 600;
+    color: var(--primary-color, #3b82f6);
+    background: color-mix(in srgb, var(--primary-color, #3b82f6) 8%, transparent);
+    padding: 0.15rem 0.6rem;
+    border-radius: 20px;
+  }
 }
 
 .about-text {
   font-size: 0.95rem;
-  line-height: 1.7;
+  line-height: 1.75;
   color: var(--text-color-secondary);
   margin: 0;
+  max-width: 800px;
 }
 
-// Climate cards
-.climate-cards {
+// Cities header with button
+.cities-header {
   display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 1.25rem;
+}
+
+.add-city-btn {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.5rem 1rem;
+  border-radius: 10px;
+  border: none;
+  background: var(--primary-color, #3b82f6);
+  color: #fff;
+  font-size: 0.82rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.15s ease, transform 0.15s ease;
+  white-space: nowrap;
+
+  i {
+    font-size: 0.75rem;
+  }
+
+  &:hover {
+    background: color-mix(in srgb, var(--primary-color, #3b82f6) 85%, #000);
+    transform: translateY(-1px);
+  }
+
+  &:active {
+    transform: translateY(0);
+  }
+}
+
+// Empty cities
+.empty-cities {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 3rem;
+  color: var(--text-color-secondary);
+  background: var(--surface-card, #fff);
+  border-radius: 14px;
+  border: 1px dashed var(--surface-border, #e5e7eb);
+
+  i {
+    font-size: 2rem;
+    opacity: 0.5;
+  }
+
+  p {
+    margin: 0;
+    font-size: 0.9rem;
+  }
+}
+
+// Facts
+.facts-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
   gap: 1rem;
 }
 
-.climate-card {
-  flex: 1;
+.fact-card {
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 0.35rem;
-  padding: 1.25rem;
-  border-radius: 12px;
-  background: var(--surface-card, #fff);
-  border: 1px solid var(--surface-border, #e5e7eb);
-
-  .climate-icon {
-    font-size: 1.5rem;
-  }
-
-  .climate-value {
-    font-size: 1.5rem;
-    font-weight: 700;
-    color: var(--text-color);
-  }
-
-  .climate-label {
-    font-size: 0.8rem;
-    color: var(--text-color-secondary);
-  }
-}
-
-// Sidebar
-.content-sidebar {
-  display: flex;
-  flex-direction: column;
-  gap: 1.25rem;
-}
-
-.scores-card,
-.info-card {
-  padding: 1.25rem;
+  gap: 0.4rem;
+  padding: 1.5rem 1rem;
   border-radius: 14px;
   background: var(--surface-card, #fff);
   border: 1px solid var(--surface-border, #e5e7eb);
-}
+  transition: transform 0.15s ease, box-shadow 0.15s ease;
 
-.scores-title {
-  font-size: 1rem;
-  font-weight: 700;
-  margin: 0 0 1rem 0;
-  color: var(--text-color);
-}
-
-.scores-list {
-  display: flex;
-  flex-direction: column;
-  gap: 0.85rem;
-}
-
-.score-row {
-  display: flex;
-  flex-direction: column;
-  gap: 6px;
-}
-
-.score-header {
-  display: flex;
-  align-items: center;
-  gap: 6px;
-
-  .score-icon {
-    font-size: 14px;
-    width: 22px;
-    text-align: center;
-    flex-shrink: 0;
+  &:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.06);
   }
 
-  .score-label {
-    flex: 1;
-    font-size: 0.84rem;
-    font-weight: 500;
-    color: var(--text-color);
+  .fact-icon {
+    font-size: 1.6rem;
   }
 
-  .score-value {
-    font-size: 0.84rem;
-    font-weight: 700;
-    min-width: 38px;
-    text-align: right;
-    font-variant-numeric: tabular-nums;
-  }
-}
-
-.score-bar-bg {
-  height: 8px;
-  border-radius: 4px;
-  background: var(--surface-ground, #f1f3f5);
-  overflow: hidden;
-}
-
-.score-bar-fill {
-  height: 100%;
-  border-radius: 4px;
-  transition: width 0.6s cubic-bezier(0.22, 1, 0.36, 1);
-  min-width: 4px;
-}
-
-// Info card
-.info-list {
-  display: flex;
-  flex-direction: column;
-  gap: 0.65rem;
-}
-
-.info-row {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-
-  .info-label {
-    font-size: 0.85rem;
+  .fact-label {
+    font-size: 0.78rem;
     color: var(--text-color-secondary);
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    font-weight: 500;
   }
 
-  .info-value {
-    font-size: 0.85rem;
-    font-weight: 600;
+  .fact-value {
+    font-size: 1.05rem;
+    font-weight: 700;
     color: var(--text-color);
   }
-
-  .info-link {
-     color: var(--primary-color, #3b82f6);
-     text-decoration: none;
-
-     &:hover {
-       text-decoration: underline;
-    }
-   }
 }
 
 // ──────────────────────────────────────────
-// Edit City Dialog
+// Dialog (shared between country edit & city create)
 // ──────────────────────────────────────────
 .dialog-backdrop {
   position: fixed;
@@ -389,7 +312,7 @@
   top: 50%;
   left: 50%;
   transform: translate(-50%, -50%);
-  width: 600px;
+  width: 520px;
   max-width: calc(100vw - 2rem);
   max-height: calc(100vh - 4rem);
   overflow-y: auto;
@@ -397,6 +320,10 @@
   border-radius: 16px;
   box-shadow: 0 16px 48px rgba(0, 0, 0, 0.2);
   z-index: 501;
+
+  &.dialog-wide {
+    width: 600px;
+  }
 }
 
 .dialog-header {
@@ -532,7 +459,7 @@
   min-height: 70px;
 }
 
-// Score sliders (dialog)
+// Score sliders
 .scores-grid {
   display: grid;
   grid-template-columns: 1fr 1fr;
@@ -550,7 +477,7 @@
   justify-content: space-between;
   align-items: baseline;
 
-  .score-field-value {
+  .score-value {
     font-size: 0.8rem;
     font-weight: 700;
     color: var(--primary-color, #3b82f6);
@@ -654,18 +581,21 @@
 
 // Responsive
 @media (max-width: 960px) {
-  .content-grid {
-    grid-template-columns: 1fr;
-    padding: 1.5rem;
-  }
-
   .hero {
-    height: 280px;
+    height: 320px;
     border-radius: 0;
   }
 
   .hero-content .hero-title {
-    font-size: 2rem;
+    font-size: 2.25rem;
+  }
+
+  .hero-overlay {
+    padding: 2rem;
+  }
+
+  .content-body {
+    padding: 1.5rem;
   }
 
   .scores-grid {
@@ -674,20 +604,24 @@
 }
 
 @media (max-width: 600px) {
-  .climate-cards {
-    flex-direction: column;
+  .hero {
+    height: 260px;
   }
 
   .hero-content .hero-title {
-    font-size: 1.5rem;
+    font-size: 1.75rem;
   }
 
   .hero-overlay {
     padding: 1.5rem;
   }
 
-  .content-grid {
+  .content-body {
     padding: 1rem;
+  }
+
+  .facts-grid {
+    grid-template-columns: repeat(2, 1fr);
   }
 
   .form-row {
@@ -696,5 +630,11 @@
 
   .dialog {
     width: calc(100vw - 1rem);
+  }
+
+  .cities-header {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 0.75rem;
   }
 }

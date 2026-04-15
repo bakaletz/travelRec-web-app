@@ -1,11 +1,11 @@
 import { Component, OnInit, ChangeDetectorRef } from '@angular/core';
-import { RouterLink } from '@angular/router';
+import { RouterLink, RouterLinkActive } from '@angular/router';
 import { AuthService } from '../../../core/services/auth.service';
 
 @Component({
   selector: 'app-header',
   standalone: true,
-  imports: [RouterLink],
+  imports: [RouterLink, RouterLinkActive],
   templateUrl: './header.component.html',
   styleUrls: ['./header.component.scss']
 })
@@ -28,7 +28,7 @@ export class HeaderComponent implements OnInit {
         this.isLoggedIn = true;
         this.userName = user.firstName + ' ' + user.lastName;
         this.avatarUrl = user.avatarUrl;
-         this.isAdmin = user.role === 'ADMIN'; 
+         this.isAdmin = user.role === 'ADMIN';
       } else {
         this.isLoggedIn = false;
         this.userName = '';

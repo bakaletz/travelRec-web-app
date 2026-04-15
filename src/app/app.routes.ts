@@ -1,7 +1,7 @@
 import { Routes } from '@angular/router';
 
 export const routes: Routes = [
-     {
+  {
     path: '',
     loadComponent: () => import('./features/recommendation/recommendation.component')
       .then(m => m.RecommendationComponent)
@@ -16,9 +16,22 @@ export const routes: Routes = [
     loadComponent: () => import('./features/auth/register/register.component')
       .then(m => m.RegisterComponent)
   },
-  { path: 'cities/:id', 
+  {
+    path: 'cities/:id',
     loadComponent: () => import('./features/city-detail/city-detail.component')
-      .then(m => m.CityDetailComponent)},
+      .then(m => m.CityDetailComponent)
+  },
+  {
+    path: 'countries/:id',
+    loadComponent: () => import('./features/country/country-detail/country-detail.component')
+      .then(m => m.CountryDetailComponent)
+  },
+  {
+    path: 'countries',
+    loadComponent: () => import('./features/country/countries.component')
+      .then(m => m.CountriesComponent)
+  },
+
   {
     path: '**',
     redirectTo: ''

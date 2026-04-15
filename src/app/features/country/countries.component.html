@@ -1,0 +1,126 @@
+@if (loading) {
+<div class="loading-state">
+  <i class="pi pi-spin pi-spinner"></i>
+  <span>Loading countries...</span>
+</div>
+}
+
+@if (!loading && countries.length === 0 && !isAdmin) {
+<div class="empty-state">
+  <i class="pi pi-globe"></i>
+  <h3>No countries found</h3>
+</div>
+}
+
+@if (!loading) {
+<div class="countries-page">
+  <div class="page-header">
+    <div class="page-header-text">
+      <h1 class="page-title">Countries</h1>
+      <span class="page-subtitle">{{ countries.length }} destinations to explore</span>
+    </div>
+    @if (isAdmin) {
+    <button class="add-country-btn" (click)="openDialog()">
+      <i class="pi pi-plus"></i>
+      <span>Add Country</span>
+    </button>
+    }
+  </div>
+
+  @if (countries.length > 0) {
+  <div class="countries-grid">
+    @for (country of countries; track country.id) {
+    <a class="country-card" [routerLink]="['/countries', country.id]">
+      <div class="card-image-wrapper">
+        @if (country.imageUrl) {
+        <img [src]="country.imageUrl" [alt]="country.name" class="card-image">
+        } @else {
+        <div class="card-image-placeholder">
+          <i class="pi pi-image"></i>
+        </div>
+        }
+        <div class="card-overlay">
+          <span class="card-name">{{ country.name }}</span>
+        </div>
+      </div>
+    </a>
+    }
+  </div>
+  }
+</div>
+}
+
+<!-- Create Country Dialog -->
+@if (dialogOpen) {
+<div class="dialog-backdrop" (click)="closeDialog()"></div>
+<div class="dialog">
+  <div class="dialog-header">
+    <h2 class="dialog-title">Add Country</h2>
+    <button class="dialog-close" (click)="closeDialog()">
+      <i class="pi pi-times"></i>
+    </button>
+  </div>
+
+  <div class="dialog-body">
+    @if (formError) {
+    <div class="form-error">
+      <i class="pi pi-exclamation-circle"></i>
+      {{ formError }}
+    </div>
+    }
+
+    <div class="form-row">
+      <div class="form-group flex-2">
+        <label class="form-label">Name *</label>
+        <input class="form-input" [(ngModel)]="form.name" placeholder="e.g. Japan">
+      </div>
+      <div class="form-group flex-1">
+        <label class="form-label">Code *</label>
+        <input class="form-input" [(ngModel)]="form.code" placeholder="e.g. JP" maxlength="3">
+      </div>
+    </div>
+
+    <div class="form-group">
+      <label class="form-label">Continent *</label>
+      <select class="form-input" [(ngModel)]="form.continent">
+        <option value="" disabled>Select continent</option>
+        @for (opt of continentOptions; track opt.value) {
+        <option [value]="opt.value">{{ opt.label }}</option>
+        }
+      </select>
+    </div>
+
+    <div class="form-row">
+      <div class="form-group flex-1">
+        <label class="form-label">Language</label>
+        <input class="form-input" [(ngModel)]="form.language" placeholder="e.g. Japanese">
+      </div>
+      <div class="form-group flex-1">
+        <label class="form-label">Currency</label>
+        <input class="form-input" [(ngModel)]="form.currency" placeholder="e.g. JPY">
+      </div>
+    </div>
+
+    <div class="form-group">
+      <label class="form-label">Image URL</label>
+      <input class="form-input" [(ngModel)]="form.imageUrl" placeholder="https://...">
+    </div>
+
+    <div class="form-group">
+      <label class="form-label">Description</label>
+      <textarea class="form-input form-textarea" [(ngModel)]="form.description" rows="3"
+        placeholder="Short description of the country..."></textarea>
+    </div>
+  </div>
+
+  <div class="dialog-footer">
+    <button class="btn-cancel" (click)="closeDialog()">Cancel</button>
+    <button class="btn-save" (click)="submitForm()" [disabled]="saving">
+      @if (saving) {
+      <i class="pi pi-spin pi-spinner"></i>
+      }
+      {{ saving ? 'Saving...' : 'Create Country' }}
+    </button>
+  </div>
+</div>
+}

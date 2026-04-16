@@ -10,6 +10,7 @@ import { Recommendation } from '../../core/models/recommendation.model';
 import { CityTypeLabelPipe } from '../../shared/pipes/city-type-label.pipe';
 import { ClimateTypeLabelPipe } from '../../shared/pipes/climate-type-label.pipe';
 import { CityCarouselComponent } from '../../shared/components/city/city-carousel/city-carousel.component';
+import { AddToTripDialogComponent } from '../../shared/components/add-to-trip-dialog/add-to-trip-dialog.component';
 
 interface ScoreEntry {
   label: string;
@@ -52,18 +53,24 @@ interface CityEditForm {
     FormsModule,
     CityTypeLabelPipe,
     ClimateTypeLabelPipe,
-    CityCarouselComponent
+    CityCarouselComponent,
+    AddToTripDialogComponent
   ],
   templateUrl: './city-detail.component.html',
   styleUrls: ['./city-detail.component.scss']
 })
 export class CityDetailComponent implements OnInit {
 
+  showTripDialog = false;
+  tripDialogCityId: number | null = null;
+  tripDialogCityName = '';
+
   city: City | null = null;
   nearbyRecommendations: Recommendation[] = [];
   loading = true;
   error = false;
   isAdmin = false;
+  isLoggedIn = false;
 
   editDialogOpen = false;
   editSaving = false;
@@ -152,9 +159,10 @@ export class CityDetailComponent implements OnInit {
 
   ngOnInit(): void {
     this.authService.currentUser$.subscribe(user => {
-      this.isAdmin = user?.role === 'ADMIN';
-      this.cdr.detectChanges();
-    });
+  this.isAdmin = user?.role === 'ADMIN';
+  this.isLoggedIn = !!user;
+  this.cdr.detectChanges();
+});
 
     this.route.params.subscribe(params => {
       const id = +params['id'];
@@ -317,13 +325,21 @@ export class CityDetailComponent implements OnInit {
     };
   }
 
-  onAddToTrip(): void {
+   onAddToTrip(): void {
     if (!this.city) return;
-    console.log('Add to trip:', this.city.name);
+    this.tripDialogCityId = this.city.id;
+    this.tripDialogCityName = this.city.name;
+    this.showTripDialog = true;
   }
 
-  onAddToTripFromNearby(city: City): void {
-    console.log('Add to trip:', city.name);
+   onAddToTripFromNearby(city: City): void {
+    this.tripDialogCityId = city.id;
+    this.tripDialogCityName = city.name;
+    this.showTripDialog = true;
+  }
+
+  onTripDialogClose(): void {
+    this.showTripDialog = false;
   }
 
   // ── Private ─────────────────────────────────────

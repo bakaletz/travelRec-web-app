@@ -1,0 +1,268 @@
+<div class="trip-detail-page">
+  @if (loading) {
+  <div class="loading-state">
+    <div class="spinner"></div>
+    <p>Loading trip...</p>
+  </div>
+  } @else if (error) {
+  <div class="error-state">
+    <p>{{ error }}</p>
+    <button class="back-btn-text" (click)="goBack()">← Back to Trips</button>
+  </div>
+  } @else if (trip) {
+  <button class="back-link" (click)="goBack()">
+    <i class="pi pi-arrow-left"></i>
+    Back to Trips
+  </button>
+
+  <!-- ── Header ── -->
+  <div class="trip-header">
+    <div class="trip-title-row">
+      @if (editingName) {
+      <div class="inline-edit">
+        <input class="edit-name-input" [(ngModel)]="editName" (keyup.enter)="saveName()"
+          (keyup.escape)="cancelEditName()" autofocus>
+        <button class="inline-btn save" (click)="saveName()">✓</button>
+        <button class="inline-btn cancel" (click)="cancelEditName()">✕</button>
+      </div>
+      } @else {
+      <h1 (click)="startEditName()" [class.editable]="isPlanned">
+        {{ trip.name }}
+        @if (isPlanned) {
+        <i class="pi pi-pencil edit-hint"></i>
+        }
+      </h1>
+      }
+      <span class="status-badge" [ngClass]="getStatusClass(trip.status)">
+        {{ getStatusLabel(trip.status) }}
+      </span>
+    </div>
+
+    <div class="trip-meta-row">
+      @if (editingDates) {
+      <div class="inline-edit dates-edit">
+        <input type="date" [(ngModel)]="editStartDate">
+        <span class="date-sep">→</span>
+        <input type="date" [(ngModel)]="editEndDate">
+        <button class="inline-btn save" (click)="saveDates()">✓</button>
+        <button class="inline-btn cancel" (click)="cancelEditDates()">✕</button>
+      </div>
+      } @else {
+      <span class="meta-chip" (click)="startEditDates()" [class.editable]="isPlanned">
+        📅 {{ formatDate(trip.startDate) }} — {{ formatDate(trip.endDate) }}
+        @if (isPlanned) {
+        <i class="pi pi-pencil edit-hint-sm"></i>
+        }
+      </span>
+      }
+      @if (getDurationDays() !== null) {
+      <span class="meta-chip">⏱️ {{ getDurationDays() }} days</span>
+      }
+      <span class="meta-chip">📍 {{ trip.cities.length }} {{ trip.cities.length === 1 ? 'city' : 'cities' }}</span>
+    </div>
+
+    @if (sortedCities.length > 1) {
+    <div class="route-preview">{{ getRouteString() }}</div>
+    }
+  </div>
+
+  <!-- ── Content grid ── -->
+  <div class="content-layout">
+
+    <!-- Left: Cities -->
+    <div class="content-main">
+
+      <div class="section-header">
+        <h2>Itinerary</h2>
+        @if (isPlanned) {
+        <div class="section-actions">
+          @if (sortedCities.length >= 3) {
+          <button class="optimize-btn" (click)="optimizeRoute()" [disabled]="optimizing">
+            <i class="pi pi-sort-alt"></i>
+            {{ optimizing ? 'Optimizing...' : 'Optimize Route' }}
+          </button>
+          }
+          <a routerLink="/" class="add-city-link">
+            <i class="pi pi-plus"></i> Add City
+          </a>
+        </div>
+        }
+      </div>
+
+      @if (sortedCities.length === 0) {
+      <div class="empty-cities">
+        <span class="empty-icon">🗺️</span>
+        <h3>No cities yet</h3>
+        <p>Browse <a routerLink="/">recommendations</a> and add cities to build your itinerary.</p>
+      </div>
+      } @else {
+      <div class="cities-list">
+        @for (city of sortedCities; track city.id; let i = $index) {
+        <div class="city-row" [class.suboptimal]="city.suboptimalOrder" [class.dragging]="dragIndex === i"
+          [class.drag-over]="dragOverIndex === i && dragIndex !== i" [attr.draggable]="isPlanned"
+          (dragstart)="onDragStart(i)" (dragover)="onDragOver($event, i)" (dragleave)="onDragLeave()"
+          (drop)="onDrop($event, i)" (dragend)="onDragEnd()">
+
+          @if (isPlanned) {
+          <div class="drag-handle" title="Drag to reorder">
+            <i class="pi pi-bars"></i>
+          </div>
+          }
+
+          <div class="city-order">{{ i + 1 }}</div>
+
+          <a [routerLink]="['/cities', city.cityId]" class="city-img-link">
+            <div class="city-img" [style.background-image]="city.imageUrl ? 'url(' + city.imageUrl + ')' : 'none'">
+              @if (!city.imageUrl) {
+              <span>🏙️</span>
+              }
+            </div>
+          </a>
+
+          <div class="city-info">
+            <a [routerLink]="['/cities', city.cityId]" class="city-name-link">
+              {{ city.cityName }}
+            </a>
+            <span class="city-country">{{ city.countryName }}</span>
+            @if (city.arrivalDate || city.departureDate) {
+            <span class="city-dates">
+              {{ formatDate(city.arrivalDate) }} — {{ formatDate(city.departureDate) }}
+            </span>
+            }
+          </div>
+
+          @if (city.distanceFromPrevious) {
+          <span class="distance-badge" [class.warn]="city.suboptimalOrder">
+            {{ city.distanceFromPrevious | number:'1.0-0' }} km
+          </span>
+          }
+
+          @if (isPlanned) {
+          <button class="remove-city-btn" (click)="confirmRemoveCity($event, city)" title="Remove city">
+            <i class="pi pi-times"></i>
+          </button>
+          }
+
+          @if (i < sortedCities.length - 1) { <div class="connector">
+        </div>
+        }
+      </div>
+      }
+    </div>
+    }
+
+    <!-- Nearby cities -->
+    @if (isPlanned && nearbyCities.length > 0) {
+    <div class="nearby-section">
+      <h2>Nearby Cities</h2>
+      <p class="nearby-hint">Cities near your last stop — click + to add them to this trip</p>
+      <app-city-carousel 
+      [cities]="nearbyCities" 
+      [score]="nearbyScoreFn"
+      scoreLabel="match"
+      [visibleCards]="3"
+      [directAdd]="true"
+      (addToTrip)="onAddNearbyToTrip($event)">
+      </app-city-carousel>
+    </div>
+    }
+  </div>
+
+  <!-- Right: Sidebar -->
+  <aside class="content-sidebar">
+
+    @if (isPlanned) {
+    <div class="sidebar-card actions-card">
+      <h3>Actions</h3>
+      <button class="action-btn complete" (click)="completeTrip()" [disabled]="actionLoading">
+        <i class="pi pi-check"></i>
+        Mark as Completed
+      </button>
+      <button class="action-btn cancel-action" (click)="cancelTrip()" [disabled]="actionLoading">
+        <i class="pi pi-times"></i>
+        Cancel Trip
+      </button>
+      <div class="action-divider"></div>
+      <button class="action-btn delete" (click)="confirmDeleteTrip()">
+        <i class="pi pi-trash"></i>
+        Delete Trip
+      </button>
+    </div>
+    }
+
+    @if (isCompleted) {
+    <div class="sidebar-card rate-card">
+      <span class="rate-icon">⭐</span>
+      <h3>Rate your trip</h3>
+      <p>Share your experience to improve recommendations</p>
+      <a class="rate-btn" routerLink="/trips/{{ trip.id }}/rate">Rate Cities →</a>
+    </div>
+    }
+
+    <div class="sidebar-card summary-card">
+      <h3>Summary</h3>
+      <div class="summary-row">
+        <span class="summary-label">Status</span>
+        <span class="status-badge sm" [ngClass]="getStatusClass(trip.status)">
+          {{ getStatusLabel(trip.status) }}
+        </span>
+      </div>
+      <div class="summary-row">
+        <span class="summary-label">Cities</span>
+        <span class="summary-value">{{ trip.cities.length }}</span>
+      </div>
+      @if (getDurationDays() !== null) {
+      <div class="summary-row">
+        <span class="summary-label">Duration</span>
+        <span class="summary-value">{{ getDurationDays() }} days</span>
+      </div>
+      }
+      <div class="summary-row">
+        <span class="summary-label">Created</span>
+        <span class="summary-value">{{ formatDate(trip.createdAt) }}</span>
+      </div>
+      @if (sortedCities.length > 0) {
+      <div class="summary-row">
+        <span class="summary-label">Countries</span>
+        <span class="summary-value">{{ getUniqueCountries() }}</span>
+      </div>
+      @if (trip.totalDistance) {
+      <div class="summary-row">
+        <span class="summary-label">Total distance</span>
+        <span class="summary-value">{{ trip.totalDistance | number:'1.0-0' }} km</span>
+      </div>
+      }
+      }
+    </div>
+  </aside>
+</div>
+}
+</div>
+
+<!-- ── Dialogs ── -->
+
+@if (cityToRemove) {
+<div class="dialog-overlay" (click)="cancelRemoveCity()">
+  <div class="dialog" (click)="$event.stopPropagation()">
+    <h3>Remove City</h3>
+    <p>Remove <strong>{{ cityToRemove.cityName }}</strong> from this trip?</p>
+    <div class="dialog-actions">
+      <button class="btn-cancel" (click)="cancelRemoveCity()">Cancel</button>
+      <button class="btn-confirm danger" (click)="removeCity()">Remove</button>
+    </div>
+  </div>
+</div>
+}
+
+@if (showDeleteConfirm) {
+<div class="dialog-overlay" (click)="cancelDeleteTrip()">
+  <div class="dialog" (click)="$event.stopPropagation()">
+    <h3>Delete Trip</h3>
+    <p>Are you sure you want to delete <strong>{{ trip?.name }}</strong>? This cannot be undone.</p>
+    <div class="dialog-actions">
+      <button class="btn-cancel" (click)="cancelDeleteTrip()">Cancel</button>
+      <button class="btn-confirm danger" (click)="deleteTrip()">Delete</button>
+    </div>
+  </div>
+</div>
+}

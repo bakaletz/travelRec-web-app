@@ -1,0 +1,171 @@
+<div class="rate-page">
+  @if (loading) {
+    <div class="loading-state">
+      <div class="spinner"></div>
+      <p>Loading trip...</p>
+    </div>
+  } @else if (!trip) {
+    <div class="error-state">
+      <p>{{ error || 'Trip not found' }}</p>
+      <a routerLink="/trips" class="back-link">← Back to Trips</a>
+    </div>
+  } @else {
+
+    <!-- Progress bar -->
+    <div class="progress-bar">
+      <div class="progress-fill" [style.width.%]="progress"></div>
+    </div>
+
+    <div class="rate-header">
+      <a [routerLink]="['/trips', trip.id]" class="back-link">
+        <i class="pi pi-arrow-left"></i> {{ trip.name }}
+      </a>
+      <span class="progress-text">{{ currentIndex + 1 }} / {{ sortedCities.length }}</span>
+    </div>
+
+    <!-- City stepper dots -->
+    <div class="stepper">
+      @for (city of sortedCities; track city.id; let i = $index) {
+        <button
+          class="step-dot"
+          [class.active]="i === currentIndex"
+          [class.rated]="existingRatings.has(city.cityId)"
+          (click)="goToCity(i)"
+          [title]="city.cityName">
+          @if (existingRatings.has(city.cityId)) {
+            <i class="pi pi-check"></i>
+          } @else {
+            {{ i + 1 }}
+          }
+        </button>
+      }
+    </div>
+
+    @if (currentCity) {
+      <div class="rate-card">
+        <!-- City info -->
+        <div class="city-header">
+          <div class="city-img"
+               [style.background-image]="currentCity.imageUrl ? 'url(' + currentCity.imageUrl + ')' : 'none'">
+            @if (!currentCity.imageUrl) { <span>🏙️</span> }
+          </div>
+          <div class="city-meta">
+            <h2>{{ currentCity.cityName }}</h2>
+            <span class="city-country">{{ currentCity.countryName }}</span>
+          </div>
+        </div>
+
+        <!-- Quick rating -->
+        <div class="quick-section">
+          <h3>How was {{ currentCity.cityName }}?</h3>
+          <div class="quick-buttons">
+            <button
+              class="quick-btn dislike"
+              [class.selected]="quickScore === 1"
+              (click)="setQuickScore(1)">
+              <span class="quick-emoji">👎</span>
+              <span class="quick-label">Not for me</span>
+            </button>
+            <button
+              class="quick-btn neutral"
+              [class.selected]="quickScore === 3"
+              (click)="setQuickScore(3)">
+              <span class="quick-emoji">😐</span>
+              <span class="quick-label">It was okay</span>
+            </button>
+            <button
+              class="quick-btn like"
+              [class.selected]="quickScore === 5"
+              (click)="setQuickScore(5)">
+              <span class="quick-emoji">👍</span>
+              <span class="quick-label">Loved it!</span>
+            </button>
+          </div>
+        </div>
+
+        <!-- Detailed toggle -->
+        @if (quickScore !== null) {
+          <button class="detailed-toggle" (click)="toggleDetailed()">
+            <i class="pi" [class.pi-chevron-down]="!showDetailed" [class.pi-chevron-up]="showDetailed"></i>
+            {{ showDetailed ? 'Hide detailed ratings' : 'Add detailed ratings (optional)' }}
+          </button>
+
+          <!-- Detailed ratings -->
+          @if (showDetailed) {
+            <div class="detailed-section">
+              @for (cat of categories; track cat.key) {
+                <div class="cat-row">
+                  <div class="cat-label">
+                    <span class="cat-icon">{{ cat.icon }}</span>
+                    <span>{{ cat.label }}</span>
+                  </div>
+                  <div class="stars">
+                    @for (star of [1,2,3,4,5]; track star) {
+                      <button
+                        class="star-btn"
+                        [class.filled]="cat.value !== null && star <= cat.value!"
+                        (click)="setStarRating(cat, star)">
+                        ★
+                      </button>
+                    }
+                  </div>
+                </div>
+              }
+            </div>
+          }
+
+          <!-- Feedback -->
+          <div class="feedback-section">
+            <label>Any thoughts? (optional)</label>
+            <textarea
+              [(ngModel)]="feedback"
+              placeholder="What stood out about this city?"
+              rows="2"
+              maxlength="500">
+            </textarea>
+          </div>
+
+          <!-- Error -->
+          @if (error) {
+            <div class="error-msg">{{ error }}</div>
+          }
+
+          <!-- Actions -->
+          <div class="rate-actions">
+            @if (saved && isCurrentRated) {
+              <span class="saved-label"><i class="pi pi-check-circle"></i> Saved</span>
+            }
+
+            <button
+              class="save-btn"
+              [disabled]="quickScore === null || saving"
+              (click)="submitRating()">
+              {{ saving ? 'Saving...' : (isCurrentRated ? 'Update' : 'Save') }}
+            </button>
+
+            @if (isLast) {
+              <button class="finish-btn" (click)="finish()">
+                Finish →
+              </button>
+            } @else {
+              <button class="next-btn" (click)="goNext()">
+                Next City →
+              </button>
+            }
+          </div>
+        }
+      </div>
+    }
+
+    <!-- Navigation -->
+    <div class="nav-row">
+      <button class="nav-btn" [disabled]="isFirst" (click)="goPrev()">
+        ← Previous
+      </button>
+      <button class="nav-btn" (click)="isLast ? finish() : goNext()">
+        {{ isLast ? 'Done' : 'Skip →' }}
+      </button>
+    </div>
+
+  }
+</div>

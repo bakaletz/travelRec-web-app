@@ -1,0 +1,84 @@
+<div class="dialog-overlay" (click)="onOverlayClick()">
+  <div class="dialog" (click)="$event.stopPropagation()">
+
+    @if (successMessage) {
+      <div class="success-state">
+        <div class="success-icon">✓</div>
+        <p>{{ successMessage }}</p>
+      </div>
+    } @else {
+      <h2>Add to Trip</h2>
+      <p class="subtitle">Add <strong>{{ cityName }}</strong> to a trip</p>
+
+      @if (loading) {
+        <div class="dialog-loading">
+          <div class="spinner"></div>
+        </div>
+      } @else {
+        @if (errorMessage) {
+          <div class="error-msg">{{ errorMessage }}</div>
+        }
+
+        @if (!showCreateNew && plannedTrips.length > 0) {
+          <div class="trip-options">
+            @for (trip of plannedTrips; track trip.id) {
+              <button
+                class="trip-option"
+                [class.selected]="selectedTripId === trip.id"
+                (click)="selectTrip(trip.id)">
+                <span class="trip-option-name">{{ trip.name }}</span>
+                <span class="trip-option-meta">{{ trip.cities.length }} cities</span>
+              </button>
+            }
+          </div>
+
+          <div class="dialog-actions">
+            <button class="text-btn" (click)="toggleCreateNew()">
+              + Create new trip
+            </button>
+            <div class="action-group">
+              <button class="cancel-btn" (click)="close.emit()">Cancel</button>
+              <button
+                class="confirm-btn"
+                [disabled]="!selectedTripId || adding"
+                (click)="addToSelectedTrip()">
+                {{ adding ? 'Adding...' : 'Add' }}
+              </button>
+            </div>
+          </div>
+        }
+
+        @if (showCreateNew) {
+          <div class="create-new-section">
+            <div class="form-group">
+              <label for="newTrip">Trip Name</label>
+              <input
+                id="newTrip"
+                type="text"
+                [(ngModel)]="newTripName"
+                placeholder="e.g. Summer in Europe"
+                maxlength="100"
+                autofocus>
+            </div>
+            <div class="dialog-actions">
+              @if (plannedTrips.length > 0) {
+                <button class="text-btn" (click)="toggleCreateNew()">
+                  ← Pick existing trip
+                </button>
+              }
+              <div class="action-group">
+                <button class="cancel-btn" (click)="close.emit()">Cancel</button>
+                <button
+                  class="confirm-btn"
+                  [disabled]="!newTripName.trim() || creating"
+                  (click)="createAndAdd()">
+                  {{ creating ? 'Creating...' : 'Create & Add' }}
+                </button>
+              </div>
+            </div>
+          </div>
+        }
+      }
+    }
+  </div>
+</div>

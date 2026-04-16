@@ -34,10 +34,12 @@
           <i class="pi pi-pencil"></i>
         </button>
         }
+        @if (isLoggedIn) {
         <button class="hero-add-btn" (click)="onAddToTrip()">
           <i class="pi pi-plus"></i>
           <span>Add to Trip</span>
         </button>
+      }
       </div>
       <div class="hero-content">
         <h1 class="hero-title">{{ city.name }}</h1>
@@ -333,4 +335,12 @@
     </button>
   </div>
 </div>
+}
+@if (showTripDialog && tripDialogCityId) {
+  <app-add-to-trip-dialog
+    [cityId]="tripDialogCityId"
+    [cityName]="tripDialogCityName"
+    (close)="onTripDialogClose()"
+    (added)="onTripDialogClose()">
+  </app-add-to-trip-dialog>
 }

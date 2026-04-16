@@ -4,6 +4,8 @@ import { RouterModule } from '@angular/router';
 import { City } from '../../../../core/models/city.model';
 import { CityTypeLabelPipe } from '../../../pipes/city-type-label.pipe';
 import { ClimateTypeLabelPipe } from '../../../pipes/climate-type-label.pipe';
+import { AddToTripDialogComponent } from '../../add-to-trip-dialog/add-to-trip-dialog.component';
+import { AuthService } from '../../../../core/services/auth.service';
 
 interface ScoreEntry {
   label: string;
@@ -18,17 +20,28 @@ interface ScoreEntry {
     CommonModule,
     RouterModule,
     CityTypeLabelPipe,
-    ClimateTypeLabelPipe
+    ClimateTypeLabelPipe,
+    AddToTripDialogComponent
   ],
   templateUrl: './city-card.component.html',
   styleUrls: ['./city-card.component.scss']
 })
 export class CityCardComponent {
 
+  showTripDialog = false;
+  isLoggedIn = false;
+
+  constructor(private authService: AuthService) {
+    this.authService.currentUser$.subscribe(user => {
+      this.isLoggedIn = !!user;
+    });
+  }
+
   @Input() city!: City;
   @Input() score: number | null = null;
   @Input() scoreLabel: string = 'match';
   @Output() addToTrip = new EventEmitter<City>();
+  @Input() directAdd = false;
 
   private scoreConfig: { key: keyof City; label: string; icon: string }[] = [
     { key: 'cultureScore', label: 'Culture', icon: '🏛️' },
@@ -83,9 +96,25 @@ export class CityCardComponent {
   }
 
   onAddToTrip(event: Event): void {
-    event.preventDefault();
-    event.stopPropagation();
+  event.preventDefault();
+  event.stopPropagation();
+  if (!this.isLoggedIn) {
+    window.location.href = '/login';
+    return;
+  }
+  if (this.directAdd) {
     this.addToTrip.emit(this.city);
+  } else {
+    this.showTripDialog = true;
+  }
+}
+
+  onTripDialogClose(): void {
+    this.showTripDialog = false;
+  }
+
+  onCityAdded(): void {
+    this.showTripDialog = false;
   }
 
   private getSortedScores(): ScoreEntry[] {

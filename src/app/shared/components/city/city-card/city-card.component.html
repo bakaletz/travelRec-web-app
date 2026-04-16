@@ -10,9 +10,11 @@
         @else { {{ formatScore(score) }} {{ scoreLabel }} }
       </span>
       }
+       @if (isLoggedIn) {
       <button class="add-to-trip-btn" (click)="onAddToTrip($event)">
         <i class="pi pi-plus"></i>
       </button>
+    }
     </div>
     <div class="card-compact">
       <h3 class="card-city-name">{{ city.name }}</h3>
@@ -31,9 +33,11 @@
         @else { {{ formatScore(score) }} {{ scoreLabel }} }
       </span>
       }
+      @if (isLoggedIn) {
       <button class="add-to-trip-btn" (click)="onAddToTrip($event)">
         <i class="pi pi-plus"></i>
       </button>
+    }
     </div>
     <div class="card-expanded">
       <h3 class="card-city-name">{{ city.name }}</h3>
@@ -77,3 +81,12 @@
     </div>
   </a>
 </div>
+
+@if (showTripDialog) {
+  <app-add-to-trip-dialog
+    [cityId]="city.id"
+    [cityName]="city.name"
+    (close)="onTripDialogClose()"
+    (added)="onCityAdded()">
+  </app-add-to-trip-dialog>
+}

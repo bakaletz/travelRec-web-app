@@ -21,6 +21,7 @@ export class CityCarouselComponent implements AfterViewChecked {
   @Input() scoreLabel: string = 'match';
   @Input() visibleCards: number = 5;
   @Output() addToTrip = new EventEmitter<City>();
+  @Input() directAdd = false;
 
   @ViewChild('wrapper') wrapper!: ElementRef<HTMLDivElement>;
 

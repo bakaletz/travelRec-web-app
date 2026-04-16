@@ -31,10 +31,26 @@ export const routes: Routes = [
     loadComponent: () => import('./features/country/countries.component')
       .then(m => m.CountriesComponent)
   },
-  { path: 'preferences',
+  {
+    path: 'preferences',
     loadComponent: () => import('./features/preferences/preferences.component')
       .then(m => m.PreferencesComponent)
-   },
+  },
+  {
+    path: 'trips',
+    loadComponent: () => import('./features/trips/trip-list/trip-list.component')
+      .then(m => m.TripListComponent)
+  },
+  {
+    path: 'trips/:id',
+    loadComponent: () => import('./features/trips/trip-detail/trip-detail.component')
+      .then(m => m.TripDetailComponent)
+  },
+  {
+    path: 'trips/:id/rate',
+    loadComponent: () => import('./features/trips/trip-rate/trip-rate.component')
+      .then(m => m.TripRateComponent)
+  },
   {
     path: '**',
     redirectTo: ''

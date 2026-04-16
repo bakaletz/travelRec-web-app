@@ -31,7 +31,10 @@ export const routes: Routes = [
     loadComponent: () => import('./features/country/countries.component')
       .then(m => m.CountriesComponent)
   },
-
+  { path: 'preferences',
+    loadComponent: () => import('./features/preferences/preferences.component')
+      .then(m => m.PreferencesComponent)
+   },
   {
     path: '**',
     redirectTo: ''

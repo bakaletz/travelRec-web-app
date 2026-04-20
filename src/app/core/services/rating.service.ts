@@ -17,6 +17,10 @@ export class RatingService {
     return this.http.get<RatingResponse[]>(`${this.apiUrl}/trip/${tripId}`);
   }
 
+  getCurrentUserRatings(): Observable<RatingResponse[]> {
+    return this.http.get<RatingResponse[]>(`${this.apiUrl}/user/me`);
+  }
+
   createQuickRating(request: QuickRatingRequest): Observable<RatingResponse> {
     return this.http.post<RatingResponse>(`${this.apiUrl}/quick`, request);
   }

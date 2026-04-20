@@ -26,9 +26,11 @@ export interface RegisterRequest {
 
 export interface AuthResponse {
   token: string;
+  id: number;
   email: string;
   firstName: string;
   lastName: string;
+  avatarUrl: string | null;
   role: string;
 }
 
@@ -83,13 +85,21 @@ export class AuthService {
     return !!this.getToken();
   }
 
+  updateCurrentUser(partial: Partial<UserInfo>): void {
+    const current = this.currentUserSubject.value;
+    if (!current) return;
+    const updated: UserInfo = { ...current, ...partial };
+    localStorage.setItem('user', JSON.stringify(updated));
+    this.currentUserSubject.next(updated);
+  }
+
   private handleAuth(response: AuthResponse): void {
     const user: UserInfo = {
-      id: 0,
+      id: response.id,
       email: response.email,
       firstName: response.firstName,
       lastName: response.lastName,
-      avatarUrl: null,
+      avatarUrl: response.avatarUrl,
       role: response.role
     };
     localStorage.setItem('token', response.token);

@@ -1,0 +1,185 @@
+<div class="profile-page">
+  @if (loading) {
+    <div class="loading-state">
+      <div class="spinner"></div>
+      <p>Loading profile...</p>
+    </div>
+  } @else if (error || !user) {
+    <div class="error-state">
+      <p>{{ error || 'Profile not available' }}</p>
+    </div>
+  } @else {
+
+    <!-- Hero section -->
+    <section class="hero">
+      <div class="hero-inner">
+        @if (user.avatarUrl) {
+          <img [src]="user.avatarUrl" [alt]="fullName" class="hero-avatar">
+        } @else {
+          <div class="hero-avatar hero-avatar-initials">{{ initials }}</div>
+        }
+
+        <div class="hero-info">
+          <h1>{{ fullName }}</h1>
+          <p class="hero-email">{{ user.email }}</p>
+          @if (memberSince) {
+            <p class="hero-meta">
+              <i class="pi pi-calendar"></i>
+              Member since {{ memberSince }}
+            </p>
+          }
+          @if (user.role === 'ADMIN') {
+            <span class="role-badge">Admin</span>
+          }
+        </div>
+
+        <button class="edit-btn" (click)="startEdit()" [disabled]="editing">
+          <i class="pi pi-pencil"></i>
+          Edit
+        </button>
+      </div>
+    </section>
+
+    <!-- Stats -->
+    <section class="stats-grid">
+      <div class="stat-card">
+        <div class="stat-icon">✈️</div>
+        <div class="stat-value">{{ completedTripsCount }}</div>
+        <div class="stat-label">Trips completed</div>
+        @if (plannedTripsCount > 0) {
+          <div class="stat-sub">{{ plannedTripsCount }} planned</div>
+        }
+      </div>
+
+      <div class="stat-card">
+        <div class="stat-icon">🌍</div>
+        <div class="stat-value">{{ citiesVisitedCount }}</div>
+        <div class="stat-label">Cities visited</div>
+      </div>
+
+      <div class="stat-card">
+        <div class="stat-icon">⭐</div>
+        <div class="stat-value">{{ ratingsCount }}</div>
+        <div class="stat-label">Ratings given</div>
+        @if (detailedRatingsCount > 0) {
+          <div class="stat-sub">{{ detailedRatingsCount }} detailed</div>
+        }
+      </div>
+    </section>
+
+    <!-- Two-column layout for preferences and trips -->
+    <div class="columns">
+
+      <!-- Top preferences -->
+      <section class="panel">
+        <div class="panel-header">
+          <h2>Top interests</h2>
+          <a routerLink="/preferences" class="panel-link">
+            Edit <i class="pi pi-arrow-right"></i>
+          </a>
+        </div>
+
+        @if (topPreferences.length > 0) {
+          <div class="pref-list">
+            @for (pref of topPreferences; track pref.key) {
+              <div class="pref-row">
+                <span class="pref-icon">{{ pref.icon }}</span>
+                <span class="pref-label">{{ pref.label }}</span>
+                <div class="pref-bar">
+                  <div class="pref-fill" [style.width.%]="pref.weight * 100"></div>
+                </div>
+                <span class="pref-value">{{ (pref.weight * 100).toFixed(0) }}%</span>
+              </div>
+            }
+          </div>
+        } @else {
+          <p class="empty-text">Set your preferences to get personalized recommendations.</p>
+        }
+      </section>
+
+      <!-- Recent trips -->
+      <section class="panel">
+        <div class="panel-header">
+          <h2>Recent trips</h2>
+          <a routerLink="/trips" class="panel-link">
+            View all <i class="pi pi-arrow-right"></i>
+          </a>
+        </div>
+
+        @if (recentTrips.length > 0) {
+          <ul class="trips-list">
+            @for (trip of recentTrips; track trip.id) {
+              <li>
+                <a [routerLink]="['/trips', trip.id]" class="trip-row">
+                  <div class="trip-main">
+                    <span class="trip-name">{{ trip.name }}</span>
+                    <span class="trip-meta">
+                      {{ trip.cities.length }} {{ trip.cities.length === 1 ? 'city' : 'cities' }}
+                    </span>
+                  </div>
+                  <span class="trip-status" [attr.data-status]="trip.status">
+                    {{ tripStatusLabel(trip.status) }}
+                  </span>
+                </a>
+              </li>
+            }
+          </ul>
+        } @else {
+          <p class="empty-text">
+            No trips yet. <a routerLink="/recommendations">Start exploring</a> to build your first trip.
+          </p>
+        }
+      </section>
+
+    </div>
+
+    <!-- Edit modal -->
+    @if (editing) {
+      <div class="modal-backdrop" (click)="cancelEdit()"></div>
+      <div class="modal">
+        <div class="modal-header">
+          <h2>Edit profile</h2>
+          <button class="modal-close" (click)="cancelEdit()" [disabled]="saving">
+            <i class="pi pi-times"></i>
+          </button>
+        </div>
+
+        <div class="modal-body">
+          <div class="form-row">
+            <label>First name</label>
+            <input type="text" [(ngModel)]="editFirstName" maxlength="50" [disabled]="saving">
+          </div>
+
+          <div class="form-row">
+            <label>Last name</label>
+            <input type="text" [(ngModel)]="editLastName" maxlength="50" [disabled]="saving">
+          </div>
+
+          <div class="form-row">
+            <label>Avatar URL <span class="optional">(optional)</span></label>
+            <input type="url" [(ngModel)]="editAvatarUrl" maxlength="500"
+                   placeholder="https://..." [disabled]="saving">
+            @if (editAvatarUrl) {
+              <div class="avatar-preview">
+                <img [src]="editAvatarUrl" alt="Preview">
+                <span>Preview</span>
+              </div>
+            }
+          </div>
+
+          @if (editError) {
+            <div class="form-error">{{ editError }}</div>
+          }
+        </div>
+
+        <div class="modal-actions">
+          <button class="btn-secondary" (click)="cancelEdit()" [disabled]="saving">Cancel</button>
+          <button class="btn-primary" (click)="saveEdit()" [disabled]="saving">
+            {{ saving ? 'Saving...' : 'Save' }}
+          </button>
+        </div>
+      </div>
+    }
+
+  }
+</div>

@@ -1,4 +1,5 @@
 import { Routes } from '@angular/router';
+import { authGuard } from './core/guards/auth.guard';
 
 export const routes: Routes = [
   {
@@ -17,6 +18,12 @@ export const routes: Routes = [
       .then(m => m.RegisterComponent)
   },
   {
+    path: 'profile',
+    canActivate: [authGuard],
+    loadComponent: () => import('./features/profile/profile.component')
+      .then(m => m.ProfileComponent)
+  },
+  {
     path: 'cities/:id',
     loadComponent: () => import('./features/city-detail/city-detail.component')
       .then(m => m.CityDetailComponent)
@@ -33,21 +40,25 @@ export const routes: Routes = [
   },
   {
     path: 'preferences',
+    canActivate: [authGuard],
     loadComponent: () => import('./features/preferences/preferences.component')
       .then(m => m.PreferencesComponent)
   },
   {
     path: 'trips',
+    canActivate: [authGuard],
     loadComponent: () => import('./features/trips/trip-list/trip-list.component')
       .then(m => m.TripListComponent)
   },
   {
     path: 'trips/:id',
+    canActivate: [authGuard],
     loadComponent: () => import('./features/trips/trip-detail/trip-detail.component')
       .then(m => m.TripDetailComponent)
   },
   {
     path: 'trips/:id/rate',
+    canActivate: [authGuard],
     loadComponent: () => import('./features/trips/trip-rate/trip-rate.component')
       .then(m => m.TripRateComponent)
   },

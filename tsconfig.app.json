@@ -9,7 +9,7 @@
   },
   "include": [
     "src/**/*.ts"
-  ],
+, "src/app/core/models/user-preferences.modelts"  ],
   "exclude": [
     "src/**/*.spec.ts"
   ]

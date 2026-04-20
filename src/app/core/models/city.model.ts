@@ -1,0 +1,30 @@
+export interface City {
+  id: number;
+  name: string;
+  region: string;
+  cityType: string; 
+  climateType: string;    
+  population: number;
+  avgTempSummer: number;
+  avgTempWinter: number;
+  latitude: number;
+  longitude: number;
+  costLevel: number;
+  safetyScore: number;
+  cultureScore: number;
+  foodScore: number;
+  nightlifeScore: number;
+  natureScore: number;
+  beachScore: number;
+  architectureScore: number;
+  shoppingScore: number;
+  publicTransportScore: number;
+  walkabilityScore: number;
+  popularity: number;
+  ratingCount: number;
+  description: string;
+  imageUrl: string;
+  countryId: number;
+  countryName: string;
+  countryCode: string;
+}

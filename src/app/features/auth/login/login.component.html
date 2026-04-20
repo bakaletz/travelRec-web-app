@@ -1,0 +1,49 @@
+<div class="auth-page">
+  <div class="auth-card">
+    <div class="auth-header">
+      <h1 class="auth-logo">TravelRec</h1>
+      <p class="auth-subtitle">Sign in to your account</p>
+    </div>
+
+    @if (error) {
+      <div class="auth-error">{{ error }}</div>
+    }
+
+    <div class="auth-form">
+      <div class="field">
+        <label for="email">Email</label>
+        <input pInputText
+               id="email"
+               type="email"
+               [(ngModel)]="email"
+               placeholder="you@example.com"
+               class="w-full"
+               (keyup.enter)="onSubmit()">
+      </div>
+
+      <div class="field">
+        <label for="password">Password</label>
+        <p-password id="password"
+                    [(ngModel)]="password"
+                    [feedback]="false"
+                    [toggleMask]="true"
+                    placeholder="Your password"
+                    styleClass="w-full"
+                    inputStyleClass="w-full"
+                    (keyup.enter)="onSubmit()">
+        </p-password>
+      </div>
+
+      <p-button label="Sign In"
+                [loading]="loading"
+                (onClick)="onSubmit()"
+                styleClass="w-full">
+      </p-button>
+    </div>
+
+    <div class="auth-footer">
+      <span>Don't have an account?</span>
+      <a routerLink="/register" class="auth-link">Sign Up</a>
+    </div>
+  </div>
+</div>

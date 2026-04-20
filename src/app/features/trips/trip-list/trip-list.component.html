@@ -1,0 +1,141 @@
+<div class="trips-page">
+  <div class="trips-header">
+    <h1>My Trips</h1>
+    <button class="create-btn" (click)="openCreateDialog()">
+      <span class="plus-icon">+</span>
+      New Trip
+    </button>
+  </div>
+
+  <div class="tabs">
+    @for (tab of tabs; track tab.value) {
+      <button
+        class="tab"
+        [class.active]="activeTab === tab.value"
+        (click)="setTab(tab.value)">
+        {{ tab.label }}
+        @if (tab.value === 'ALL') {
+          <span class="tab-count">{{ trips.length }}</span>
+        } @else {
+          <span class="tab-count">{{ (trips | filterByStatus:tab.value).length }}</span>
+        }
+      </button>
+    }
+  </div>
+
+  @if (loading) {
+    <div class="loading">
+      <div class="spinner"></div>
+      <p>Loading trips...</p>
+    </div>
+  } @else if (error) {
+    <div class="error-state">
+      <p>{{ error }}</p>
+      <button class="retry-btn" (click)="loadTrips()">Try again</button>
+    </div>
+  } @else if (filteredTrips.length === 0) {
+    <div class="empty-state">
+      @if (activeTab === 'ALL') {
+        <div class="empty-icon">✈️</div>
+        <h3>No trips yet</h3>
+        <p>Start planning your first adventure!</p>
+        <button class="create-btn" (click)="openCreateDialog()">Create Trip</button>
+      } @else {
+        <p>No {{ activeTab.toLowerCase() }} trips</p>
+      }
+    </div>
+  } @else {
+    <div class="trips-grid">
+      @for (trip of filteredTrips; track trip.id) {
+        <a [routerLink]="['/trips', trip.id]" class="trip-card">
+          <div class="trip-card-images">
+            @if (getTripPreviewImages(trip).length > 0) {
+              @for (img of getTripPreviewImages(trip); track img; let i = $index) {
+                <div
+                  class="preview-img"
+                  [style.background-image]="'url(' + img + ')'"
+                  [style.z-index]="3 - i">
+                </div>
+              }
+            } @else {
+              <div class="preview-placeholder">
+                <span>🗺️</span>
+              </div>
+            }
+          </div>
+
+          <div class="trip-card-body">
+            <div class="trip-card-top">
+              <h3 class="trip-name">{{ trip.name }}</h3>
+              <span class="status-badge" [ngClass]="getStatusClass(trip.status)">
+                {{ getStatusLabel(trip.status) }}
+              </span>
+            </div>
+            <div class="trip-meta">
+              <span class="meta-item">
+                📅 {{ getDateRange(trip) }}
+              </span>
+              <span class="meta-item">
+                📍 {{ getCityCount(trip) }} {{ getCityCount(trip) === 1 ? 'city' : 'cities' }}
+              </span>
+            </div>
+            @if (trip.cities.length > 0) {
+              <div class="trip-cities-preview">
+                {{ trip.cities | slice:0:4 | cityNames }}
+                @if (trip.cities.length > 4) {
+                  <span class="more-cities">+{{ trip.cities.length - 4 }} more</span>
+                }
+              </div>
+            }
+          </div>
+        </a>
+      }
+    </div>
+  }
+</div>
+
+@if (showCreateDialog) {
+  <div class="dialog-overlay" (click)="closeCreateDialog()">
+    <div class="dialog" (click)="$event.stopPropagation()">
+      <h2>Create New Trip</h2>
+
+      <div class="form-group">
+        <label for="tripName">Trip Name *</label>
+        <input
+          id="tripName"
+          type="text"
+          [(ngModel)]="newTripName"
+          placeholder="e.g. Summer in Europe"
+          maxlength="100"
+          autofocus>
+      </div>
+
+      <div class="form-row">
+        <div class="form-group">
+          <label for="startDate">Start Date</label>
+          <input
+            id="startDate"
+            type="date"
+            [(ngModel)]="newTripStartDate">
+        </div>
+        <div class="form-group">
+          <label for="endDate">End Date</label>
+          <input
+            id="endDate"
+            type="date"
+            [(ngModel)]="newTripEndDate">
+        </div>
+      </div>
+
+      <div class="dialog-actions">
+        <button class="cancel-btn" (click)="closeCreateDialog()">Cancel</button>
+        <button
+          class="confirm-btn"
+          [disabled]="!newTripName.trim() || creating"
+          (click)="createTrip()">
+          {{ creating ? 'Creating...' : 'Create' }}
+        </button>
+      </div>
+    </div>
+  </div>
+}

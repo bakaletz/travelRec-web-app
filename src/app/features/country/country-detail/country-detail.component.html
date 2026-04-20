@@ -1,0 +1,344 @@
+@if (loading) {
+<div class="loading-state">
+  <i class="pi pi-spin pi-spinner"></i>
+  <span>Loading country...</span>
+</div>
+}
+
+@if (error) {
+<div class="error-state">
+  <i class="pi pi-exclamation-triangle"></i>
+  <h3>Country not found</h3>
+  <p>The country you're looking for doesn't exist or has been removed.</p>
+  <a routerLink="/recommendations" class="back-link">
+    <i class="pi pi-arrow-left"></i> Back to recommendations
+  </a>
+</div>
+}
+
+@if (country && !loading) {
+<div class="country-detail">
+
+  <!-- Hero -->
+  <section class="hero">
+    @if (country.imageUrl) {
+    <img [src]="country.imageUrl" [alt]="country.name" class="hero-image">
+    }
+    <div class="hero-overlay">
+      <a routerLink="/recommendations" class="back-btn">
+        <i class="pi pi-arrow-left"></i>
+      </a>
+      @if (isAdmin) {
+      <button class="edit-country-btn" (click)="openCountryDialog()">
+        <i class="pi pi-pencil"></i>
+      </button>
+      }
+      <div class="hero-content">
+        <span class="hero-code">{{ country.code }}</span>
+        <h1 class="hero-title">{{ country.name }}</h1>
+        <div class="hero-meta">
+          <span class="meta-tag continent" [ngStyle]="getContinentTagStyle()">
+            {{ country.continent | continentLabel }}
+          </span>
+          @if (country.language) {
+          <span class="meta-tag info-tag">
+            <i class="pi pi-comments"></i>
+            {{ country.language }}
+          </span>
+          }
+          @if (country.currency) {
+          <span class="meta-tag info-tag">
+            <i class="pi pi-wallet"></i>
+            {{ country.currency }}
+          </span>
+          }
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Content body -->
+  <div class="content-body">
+
+    @if (country.description) {
+    <section class="section about">
+      <h2 class="section-title">About</h2>
+      <p class="about-text">{{ country.description }}</p>
+    </section>
+    }
+
+    <!-- Quick facts -->
+    <section class="section facts">
+      <div class="facts-grid">
+        <div class="fact-card">
+          <span class="fact-icon">🌍</span>
+          <span class="fact-label">Continent</span>
+          <span class="fact-value">{{ country.continent | continentLabel }}</span>
+        </div>
+        @if (country.language) {
+        <div class="fact-card">
+          <span class="fact-icon">🗣️</span>
+          <span class="fact-label">Language</span>
+          <span class="fact-value">{{ country.language }}</span>
+        </div>
+        }
+        @if (country.currency) {
+        <div class="fact-card">
+          <span class="fact-icon">💱</span>
+          <span class="fact-label">Currency</span>
+          <span class="fact-value">{{ country.currency }}</span>
+        </div>
+        }
+        <div class="fact-card">
+          <span class="fact-icon">🏙️</span>
+          <span class="fact-label">Cities</span>
+          <span class="fact-value">{{ cities.length }}</span>
+        </div>
+      </div>
+    </section>
+
+    <!-- Cities -->
+    <section class="section cities">
+      <div class="cities-header">
+        <h2 class="section-title">
+          Cities in {{ country.name }}
+          <span class="city-count">{{ cities.length }}</span>
+        </h2>
+        @if (isAdmin) {
+        <button class="add-city-btn" (click)="openCityDialog()">
+          <i class="pi pi-plus"></i>
+          <span>Add City</span>
+        </button>
+        }
+      </div>
+
+      @if (cities.length > 0) {
+      <app-city-carousel
+        [cities]="cities"
+        (addToTrip)="onAddToTrip($event)">
+      </app-city-carousel>
+      } @else {
+      <div class="empty-cities">
+        <i class="pi pi-map"></i>
+        <p>No cities available for this country yet.</p>
+      </div>
+      }
+    </section>
+
+  </div>
+</div>
+}
+
+<!-- ═══════════════════════════════════════════ -->
+<!-- Edit Country Dialog                        -->
+<!-- ═══════════════════════════════════════════ -->
+@if (countryDialogOpen) {
+<div class="dialog-backdrop" (click)="closeCountryDialog()"></div>
+<div class="dialog">
+  <div class="dialog-header">
+    <h2 class="dialog-title">Edit Country</h2>
+    <button class="dialog-close" (click)="closeCountryDialog()">
+      <i class="pi pi-times"></i>
+    </button>
+  </div>
+
+  <div class="dialog-body">
+    @if (countryFormError) {
+    <div class="form-error">
+      <i class="pi pi-exclamation-circle"></i>
+      {{ countryFormError }}
+    </div>
+    }
+
+    <div class="form-row">
+      <div class="form-group flex-2">
+        <label class="form-label">Name *</label>
+        <input class="form-input" [(ngModel)]="countryForm.name" placeholder="e.g. Japan">
+      </div>
+      <div class="form-group flex-1">
+        <label class="form-label">Code *</label>
+        <input class="form-input" [(ngModel)]="countryForm.code" placeholder="e.g. JP" maxlength="3">
+      </div>
+    </div>
+
+    <div class="form-group">
+      <label class="form-label">Continent *</label>
+      <select class="form-input" [(ngModel)]="countryForm.continent">
+        <option value="" disabled>Select continent</option>
+        @for (opt of continentOptions; track opt.value) {
+        <option [value]="opt.value">{{ opt.label }}</option>
+        }
+      </select>
+    </div>
+
+    <div class="form-row">
+      <div class="form-group flex-1">
+        <label class="form-label">Language</label>
+        <input class="form-input" [(ngModel)]="countryForm.language" placeholder="e.g. Japanese">
+      </div>
+      <div class="form-group flex-1">
+        <label class="form-label">Currency</label>
+        <input class="form-input" [(ngModel)]="countryForm.currency" placeholder="e.g. JPY">
+      </div>
+    </div>
+
+    <div class="form-group">
+      <label class="form-label">Image URL</label>
+      <input class="form-input" [(ngModel)]="countryForm.imageUrl" placeholder="https://...">
+    </div>
+
+    <div class="form-group">
+      <label class="form-label">Description</label>
+      <textarea class="form-input form-textarea" [(ngModel)]="countryForm.description" rows="3"
+        placeholder="Short description of the country..."></textarea>
+    </div>
+  </div>
+
+  <div class="dialog-footer">
+    <button class="btn-cancel" (click)="closeCountryDialog()">Cancel</button>
+    <button class="btn-save" (click)="submitCountryForm()" [disabled]="countrySaving">
+      @if (countrySaving) {
+      <i class="pi pi-spin pi-spinner"></i>
+      }
+      {{ countrySaving ? 'Saving...' : 'Save Changes' }}
+    </button>
+  </div>
+</div>
+}
+
+<!-- ═══════════════════════════════════════════ -->
+<!-- Create City Dialog                         -->
+<!-- ═══════════════════════════════════════════ -->
+@if (cityDialogOpen) {
+<div class="dialog-backdrop" (click)="closeCityDialog()"></div>
+<div class="dialog dialog-wide">
+  <div class="dialog-header">
+    <h2 class="dialog-title">Add City to {{ country?.name }}</h2>
+    <button class="dialog-close" (click)="closeCityDialog()">
+      <i class="pi pi-times"></i>
+    </button>
+  </div>
+
+  <div class="dialog-body">
+    @if (cityFormError) {
+    <div class="form-error">
+      <i class="pi pi-exclamation-circle"></i>
+      {{ cityFormError }}
+    </div>
+    }
+
+    <!-- Basic info -->
+    <div class="form-section-label">Basic Info</div>
+
+    <div class="form-row">
+      <div class="form-group flex-2">
+        <label class="form-label">Name *</label>
+        <input class="form-input" [(ngModel)]="cityForm.name" placeholder="e.g. Tokyo">
+      </div>
+      <div class="form-group flex-1">
+        <label class="form-label">Region</label>
+        <input class="form-input" [(ngModel)]="cityForm.region" placeholder="e.g. Kanto">
+      </div>
+    </div>
+
+    <div class="form-row">
+      <div class="form-group flex-1">
+        <label class="form-label">City Type *</label>
+        <select class="form-input" [(ngModel)]="cityForm.cityType">
+          <option value="" disabled>Select type</option>
+          @for (opt of cityTypeOptions; track opt.value) {
+          <option [value]="opt.value">{{ opt.label }}</option>
+          }
+        </select>
+      </div>
+      <div class="form-group flex-1">
+        <label class="form-label">Climate *</label>
+        <select class="form-input" [(ngModel)]="cityForm.climateType">
+          <option value="" disabled>Select climate</option>
+          @for (opt of climateTypeOptions; track opt.value) {
+          <option [value]="opt.value">{{ opt.label }}</option>
+          }
+        </select>
+      </div>
+    </div>
+
+    <div class="form-group">
+      <label class="form-label">Population</label>
+      <input class="form-input" type="number" [(ngModel)]="cityForm.population" placeholder="e.g. 14000000">
+    </div>
+
+    <!-- Location -->
+    <div class="form-section-label">Location</div>
+
+    <div class="form-row">
+      <div class="form-group flex-1">
+        <label class="form-label">Latitude *</label>
+        <input class="form-input" type="number" step="0.0001" [(ngModel)]="cityForm.latitude" placeholder="e.g. 35.6762">
+      </div>
+      <div class="form-group flex-1">
+        <label class="form-label">Longitude *</label>
+        <input class="form-input" type="number" step="0.0001" [(ngModel)]="cityForm.longitude" placeholder="e.g. 139.6503">
+      </div>
+    </div>
+
+    <!-- Climate -->
+    <div class="form-section-label">Climate</div>
+
+    <div class="form-row">
+      <div class="form-group flex-1">
+        <label class="form-label">Avg Temp Summer (°C)</label>
+        <input class="form-input" type="number" step="0.1" [(ngModel)]="cityForm.avgTempSummer" placeholder="e.g. 30">
+      </div>
+      <div class="form-group flex-1">
+        <label class="form-label">Avg Temp Winter (°C)</label>
+        <input class="form-input" type="number" step="0.1" [(ngModel)]="cityForm.avgTempWinter" placeholder="e.g. 5">
+      </div>
+    </div>
+
+    <!-- Scores -->
+    <div class="form-section-label">Scores</div>
+    <p class="form-section-hint">All scores from 0.0 (lowest) to 1.0 (highest)</p>
+
+    <div class="scores-grid">
+      @for (field of scoreFields; track field.key) {
+      <div class="score-field">
+        <div class="score-field-header">
+          <label class="form-label">{{ field.label }}</label>
+          <span class="score-value">{{ getScorePercent(field.key) }}%</span>
+        </div>
+        <input
+          type="range"
+          class="score-slider"
+          min="0" max="1" step="0.05"
+          [ngModel]="cityForm[field.key]"
+          (ngModelChange)="cityForm[field.key] = $event">
+      </div>
+      }
+    </div>
+
+    <!-- Media & Description -->
+    <div class="form-section-label">Details</div>
+
+    <div class="form-group">
+      <label class="form-label">Image URL</label>
+      <input class="form-input" [(ngModel)]="cityForm.imageUrl" placeholder="https://...">
+    </div>
+
+    <div class="form-group">
+      <label class="form-label">Description</label>
+      <textarea class="form-input form-textarea" [(ngModel)]="cityForm.description" rows="3"
+        placeholder="Short description of the city..."></textarea>
+    </div>
+  </div>
+
+  <div class="dialog-footer">
+    <button class="btn-cancel" (click)="closeCityDialog()">Cancel</button>
+    <button class="btn-save" (click)="submitCityForm()" [disabled]="citySaving">
+      @if (citySaving) {
+      <i class="pi pi-spin pi-spinner"></i>
+      }
+      {{ citySaving ? 'Saving...' : 'Create City' }}
+    </button>
+  </div>
+</div>
+}

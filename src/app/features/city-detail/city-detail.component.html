@@ -1,0 +1,346 @@
+@if (loading) {
+<div class="loading-state">
+  <i class="pi pi-spin pi-spinner"></i>
+  <span>Loading city...</span>
+</div>
+}
+
+@if (error) {
+<div class="error-state">
+  <i class="pi pi-exclamation-triangle"></i>
+  <h3>City not found</h3>
+  <p>The city you're looking for doesn't exist or has been removed.</p>
+  <a routerLink="/recommendations" class="back-link">
+    <i class="pi pi-arrow-left"></i> Back to recommendations
+  </a>
+</div>
+}
+
+@if (city && !loading) {
+<div class="city-detail">
+
+  <!-- Hero -->
+  <section class="hero">
+    @if (city.imageUrl) {
+    <img [src]="city.imageUrl" [alt]="city.name" class="hero-image">
+    }
+    <div class="hero-overlay">
+      <a routerLink="/recommendations" class="back-btn">
+        <i class="pi pi-arrow-left"></i>
+      </a>
+      <div class="hero-actions">
+        @if (isAdmin) {
+        <button class="hero-edit-btn" (click)="openEditDialog()">
+          <i class="pi pi-pencil"></i>
+        </button>
+        }
+        @if (isLoggedIn) {
+        <button class="hero-add-btn" (click)="onAddToTrip()">
+          <i class="pi pi-plus"></i>
+          <span>Add to Trip</span>
+        </button>
+      }
+      </div>
+      <div class="hero-content">
+        <h1 class="hero-title">{{ city.name }}</h1>
+        <a class="hero-country" [routerLink]="['/countries', city.countryId]">
+          {{ city.countryName }}
+        </a>
+        <div class="hero-meta">
+          <span class="meta-tag" [ngStyle]="getMetaTagStyle('cityType', city.cityType)">
+            {{ city.cityType | cityTypeLabel }}
+          </span>
+          <span class="meta-tag" [ngStyle]="getMetaTagStyle('climate', city.climateType)">
+            {{ city.climateType | climateTypeLabel }}
+          </span>
+          @if (city.population) {
+          <span class="meta-tag population">
+            {{ formatPopulation(city.population) }} people
+          </span>
+          }
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Content -->
+  <div class="content-grid">
+
+    <!-- Left column -->
+    <div class="content-main">
+
+      @if (city.description) {
+      <section class="section about">
+        <h2 class="section-title">About</h2>
+        <p class="about-text">{{ city.description }}</p>
+      </section>
+      }
+
+      <!-- Climate info -->
+      @if (city.avgTempSummer || city.avgTempWinter) {
+      <section class="section climate">
+        <h2 class="section-title">Climate</h2>
+        <div class="climate-cards">
+          @if (city.avgTempSummer) {
+          <div class="climate-card summer">
+            <span class="climate-icon">☀️</span>
+            <span class="climate-value">{{ city.avgTempSummer }}°C</span>
+            <span class="climate-label">Summer avg.</span>
+          </div>
+          }
+          @if (city.avgTempWinter) {
+          <div class="climate-card winter">
+            <span class="climate-icon">❄️</span>
+            <span class="climate-value">{{ city.avgTempWinter }}°C</span>
+            <span class="climate-label">Winter avg.</span>
+          </div>
+          }
+        </div>
+      </section>
+      }
+
+      <!-- Nearby cities -->
+      @if (nearbyCities.length > 0) {
+      <section class="section nearby">
+        <h2 class="section-title">Nearby Cities</h2>
+        <app-city-carousel
+          [cities]="nearbyCities"
+          [score]="nearbyScoreFn"
+          scoreLabel="match"
+          [visibleCards]="3"
+          (addToTrip)="onAddToTripFromNearby($event)">
+        </app-city-carousel>
+      </section>
+      }
+
+    </div>
+
+    <!-- Right column - scores -->
+    <aside class="content-sidebar">
+
+      <div class="scores-card">
+        <h3 class="scores-title">City Scores</h3>
+        <div class="scores-list">
+          @for (s of getAllScores(); track s.label) {
+          <div class="score-row">
+            <div class="score-header">
+              <span class="score-icon">{{ s.icon }}</span>
+              <span class="score-label">{{ s.label }}</span>
+              <span class="score-value" [style.color]="getScoreColor(s.value)">
+                {{ formatScore(s.value) }}
+              </span>
+            </div>
+            <div class="score-bar-bg">
+              <div class="score-bar-fill" [style.width]="getScoreBarWidth(s.value)"
+                [style.background]="getScoreBarGradient(s.value)">
+              </div>
+            </div>
+          </div>
+          }
+        </div>
+      </div>
+
+      @if (getInfraScores().length > 0) {
+      <div class="scores-card">
+        <h3 class="scores-title">Infrastructure</h3>
+        <div class="scores-list">
+          @for (s of getInfraScores(); track s.label) {
+          <div class="score-row">
+            <div class="score-header">
+              <span class="score-icon">{{ s.icon }}</span>
+              <span class="score-label">{{ s.label }}</span>
+              <span class="score-value" [style.color]="getScoreColor(s.value)">
+                {{ formatScore(s.value) }}
+              </span>
+            </div>
+            <div class="score-bar-bg">
+              <div class="score-bar-fill" [style.width]="getScoreBarWidth(s.value)"
+                [style.background]="getScoreBarGradient(s.value)">
+              </div>
+            </div>
+          </div>
+          }
+        </div>
+      </div>
+      }
+
+      <div class="info-card">
+        <h3 class="scores-title">Details</h3>
+        <div class="info-list">
+          <div class="info-row">
+            <span class="info-label">Country</span>
+            <a class="info-value info-link" [routerLink]="['/countries', city.countryId]">
+              {{ city.countryName }}
+            </a>
+          </div>
+          @if (city.region) {
+          <div class="info-row">
+            <span class="info-label">Region</span>
+            <span class="info-value">{{ city.region }}</span>
+          </div>
+          }
+          @if (city.population) {
+          <div class="info-row">
+            <span class="info-label">Population</span>
+            <span class="info-value">{{ formatPopulation(city.population) }}</span>
+          </div>
+          }
+          @if (city.ratingCount) {
+          <div class="info-row">
+            <span class="info-label">User ratings</span>
+            <span class="info-value">{{ city.ratingCount }}</span>
+          </div>
+          }
+        </div>
+      </div>
+
+    </aside>
+
+  </div>
+</div>
+}
+
+<!-- ═══════════════════════════════════════════ -->
+<!-- Edit City Dialog                           -->
+<!-- ═══════════════════════════════════════════ -->
+@if (editDialogOpen) {
+<div class="dialog-backdrop" (click)="closeEditDialog()"></div>
+<div class="dialog">
+  <div class="dialog-header">
+    <h2 class="dialog-title">Edit {{ city?.name }}</h2>
+    <button class="dialog-close" (click)="closeEditDialog()">
+      <i class="pi pi-times"></i>
+    </button>
+  </div>
+
+  <div class="dialog-body">
+    @if (editFormError) {
+    <div class="form-error">
+      <i class="pi pi-exclamation-circle"></i>
+      {{ editFormError }}
+    </div>
+    }
+
+    <!-- Basic info -->
+    <div class="form-section-label">Basic Info</div>
+
+    <div class="form-row">
+      <div class="form-group flex-2">
+        <label class="form-label">Name *</label>
+        <input class="form-input" [(ngModel)]="editForm.name" placeholder="e.g. Tokyo">
+      </div>
+      <div class="form-group flex-1">
+        <label class="form-label">Region</label>
+        <input class="form-input" [(ngModel)]="editForm.region" placeholder="e.g. Kanto">
+      </div>
+    </div>
+
+    <div class="form-row">
+      <div class="form-group flex-1">
+        <label class="form-label">City Type *</label>
+        <select class="form-input" [(ngModel)]="editForm.cityType">
+          <option value="" disabled>Select type</option>
+          @for (opt of cityTypeOptions; track opt.value) {
+          <option [value]="opt.value">{{ opt.label }}</option>
+          }
+        </select>
+      </div>
+      <div class="form-group flex-1">
+        <label class="form-label">Climate *</label>
+        <select class="form-input" [(ngModel)]="editForm.climateType">
+          <option value="" disabled>Select climate</option>
+          @for (opt of climateTypeOptions; track opt.value) {
+          <option [value]="opt.value">{{ opt.label }}</option>
+          }
+        </select>
+      </div>
+    </div>
+
+    <div class="form-group">
+      <label class="form-label">Population</label>
+      <input class="form-input" type="number" [(ngModel)]="editForm.population" placeholder="e.g. 14000000">
+    </div>
+
+    <!-- Location -->
+    <div class="form-section-label">Location</div>
+
+    <div class="form-row">
+      <div class="form-group flex-1">
+        <label class="form-label">Latitude *</label>
+        <input class="form-input" type="number" step="0.0001" [(ngModel)]="editForm.latitude" placeholder="e.g. 35.6762">
+      </div>
+      <div class="form-group flex-1">
+        <label class="form-label">Longitude *</label>
+        <input class="form-input" type="number" step="0.0001" [(ngModel)]="editForm.longitude" placeholder="e.g. 139.6503">
+      </div>
+    </div>
+
+    <!-- Climate -->
+    <div class="form-section-label">Climate</div>
+
+    <div class="form-row">
+      <div class="form-group flex-1">
+        <label class="form-label">Avg Temp Summer (°C)</label>
+        <input class="form-input" type="number" step="0.1" [(ngModel)]="editForm.avgTempSummer" placeholder="e.g. 30">
+      </div>
+      <div class="form-group flex-1">
+        <label class="form-label">Avg Temp Winter (°C)</label>
+        <input class="form-input" type="number" step="0.1" [(ngModel)]="editForm.avgTempWinter" placeholder="e.g. 5">
+      </div>
+    </div>
+
+    <!-- Scores -->
+    <div class="form-section-label">Base Scores</div>
+    <p class="form-section-hint">These are the admin-set base scores (0.0 – 1.0). Calculated scores blend these with user ratings.</p>
+
+    <div class="scores-grid">
+      @for (field of scoreFields; track field.key) {
+      <div class="score-field">
+        <div class="score-field-header">
+          <label class="form-label">{{ field.label }}</label>
+          <span class="score-field-value">{{ getEditScorePercent(field.key) }}%</span>
+        </div>
+        <input
+          type="range"
+          class="score-slider"
+          min="0" max="1" step="0.05"
+          [ngModel]="editForm[field.key]"
+          (ngModelChange)="editForm[field.key] = $event">
+      </div>
+      }
+    </div>
+
+    <!-- Media & Description -->
+    <div class="form-section-label">Details</div>
+
+    <div class="form-group">
+      <label class="form-label">Image URL</label>
+      <input class="form-input" [(ngModel)]="editForm.imageUrl" placeholder="https://...">
+    </div>
+
+    <div class="form-group">
+      <label class="form-label">Description</label>
+      <textarea class="form-input form-textarea" [(ngModel)]="editForm.description" rows="3"
+        placeholder="Short description of the city..."></textarea>
+    </div>
+  </div>
+
+  <div class="dialog-footer">
+    <button class="btn-cancel" (click)="closeEditDialog()">Cancel</button>
+    <button class="btn-save" (click)="submitEditForm()" [disabled]="editSaving">
+      @if (editSaving) {
+      <i class="pi pi-spin pi-spinner"></i>
+      }
+      {{ editSaving ? 'Saving...' : 'Save Changes' }}
+    </button>
+  </div>
+</div>
+}
+@if (showTripDialog && tripDialogCityId) {
+  <app-add-to-trip-dialog
+    [cityId]="tripDialogCityId"
+    [cityName]="tripDialogCityName"
+    (close)="onTripDialogClose()"
+    (added)="onTripDialogClose()">
+  </app-add-to-trip-dialog>
+}

@@ -1,0 +1,53 @@
+<div class="recommendation-container">
+
+
+  @if (isAuthenticated) {
+  <!-- Personalized -->
+  <section class="section">
+    <div class="section-header">
+      <h2 class="section-title">Recommended for You</h2>
+      <span class="section-subtitle">Based on your preferences</span>
+    </div>
+    <div class="filters-bar">
+      <div class="filter-group">
+        <span class="filter-label">Continent</span>
+        <p-multiselect [options]="continentOptions" [(ngModel)]="selectedContinents" optionLabel="label"
+          optionValue="value" (onChange)="applyFilters()" placeholder="All Continents" [maxSelectedLabels]="3"
+          selectedItemsLabel="{0} selected" display="chip" [filter]="false" [showToggleAll]="false"></p-multiselect>
+      </div>
+
+      <div class="filter-group">
+        <span class="filter-label">City type</span>
+        <p-multiselect [options]="cityTypeOptions" [(ngModel)]="selectedCityTypes" optionLabel="label"
+          optionValue="value" (onChange)="applyFilters()" placeholder="All City Types" [maxSelectedLabels]="3"
+          selectedItemsLabel="{0} selected" display="chip" [filter]="false" [showToggleAll]="false"></p-multiselect>
+      </div>
+
+      <div class="filter-group">
+        <span class="filter-label">Climate</span>
+        <p-multiselect [options]="climateTypeOptions" [(ngModel)]="selectedClimateTypes" optionLabel="label"
+          optionValue="value" (onChange)="applyFilters()" placeholder="All Climates" [maxSelectedLabels]="3"
+          selectedItemsLabel="{0} selected" display="chip" [filter]="false" [showToggleAll]="false"></p-multiselect>
+      </div>
+      <button class="clear-btn" (click)="clearFilters()" [disabled]="!hasActiveFilters()">Clear all</button>
+    </div>
+
+    <app-city-carousel [cities]="personalizedCities" [score]="personalizedScoreFn" scoreLabel="match"
+      (addToTrip)="onAddToTrip($event)">
+    </app-city-carousel>
+  </section>
+
+  }
+  <!-- Popular -->
+  <section class="section">
+    <div class="section-header">
+      <h2 class="section-title">Popular Destinations</h2>
+      <span class="section-subtitle">Trending among travelers</span>
+    </div>
+
+    <app-city-carousel [cities]="popularCities" [score]="popularScoreFn" scoreLabel="popular"
+      (addToTrip)="onAddToTrip($event)">
+    </app-city-carousel>
+  </section>
+
+</div>

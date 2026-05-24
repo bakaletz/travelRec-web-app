@@ -27,6 +27,22 @@ export class RecommendationService {
     return this.http.get<Recommendation[]>(`${this.apiUrl}/popular`, { params });
   }
 
+  getSimilar(cityId: number, limit?: number): Observable<Recommendation[]> {
+    let params = new HttpParams().set('cityId', cityId);
+    if (limit) {
+      params = params.set('limit', limit);
+    }
+    return this.http.get<Recommendation[]>(`${this.apiUrl}/similar`, { params });
+  }
+
+  getBecauseYouLiked(limit?: number): Observable<Recommendation[]> {
+    let params = new HttpParams();
+    if (limit) {
+      params = params.set('limit', limit);
+    }
+    return this.http.get<Recommendation[]>(`${this.apiUrl}/because-you-liked`, { params });
+  }
+
   getNearby(cityId: number, radiusKm: number, limit?: number): Observable<Recommendation[]> {
     let params = new HttpParams()
       .set('cityId', cityId)
@@ -35,6 +51,17 @@ export class RecommendationService {
       params = params.set('limit', limit);
     }
     return this.http.get<Recommendation[]>(`${this.apiUrl}/nearby`, { params });
+  }
+
+  getNearbyByCoordinates(lat: number, lng: number, radiusKm: number, limit?: number): Observable<Recommendation[]> {
+    let params = new HttpParams()
+      .set('lat', lat)
+      .set('lng', lng)
+      .set('radiusKm', radiusKm);
+    if (limit) {
+      params = params.set('limit', limit);
+    }
+    return this.http.get<Recommendation[]>(`${this.apiUrl}/nearby-me`, { params });
   }
 
   private buildParams(filters?: RecommendationFilters): HttpParams {

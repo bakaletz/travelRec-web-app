@@ -106,6 +106,33 @@ a.city-card-overlay {
     background: rgba(245, 158, 11, 0.85);
     color: #fff;
   }
+
+  &.similarity {
+    background: rgba(59, 130, 246, 0.85);
+    color: #fff;
+  }
+}
+
+.distance-badge {
+  position: absolute;
+  top: 10px;
+  left: 10px;
+  padding: 4px 10px;
+  border-radius: 20px;
+  font-size: 0.75rem;
+  font-weight: 600;
+  backdrop-filter: blur(8px);
+  letter-spacing: 0.02em;
+  z-index: 2;
+  background: rgba(0, 0, 0, 0.55);
+  color: #fff;
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+
+  i {
+    font-size: 0.7rem;
+  }
 }
 
 .add-to-trip-btn {

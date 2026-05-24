@@ -1,45 +1,55 @@
 <div class="auth-page">
+  <div class="auth-bg-decor" aria-hidden="true"></div>
+
   <div class="auth-card">
     <div class="auth-header">
-      <h1 class="auth-logo">TravelRec</h1>
+      <div class="auth-brand">
+        <span class="auth-brand-icon">✈</span>
+        <h1 class="auth-logo">TravelRec</h1>
+      </div>
       <p class="auth-subtitle">Sign in to your account</p>
     </div>
 
     @if (error) {
-      <div class="auth-error">{{ error }}</div>
+      <div class="auth-error" role="alert">
+        <i class="pi pi-exclamation-circle"></i>
+        <span>{{ error }}</span>
+      </div>
     }
 
-    <div class="auth-form">
+    <form class="auth-form" (ngSubmit)="onSubmit()">
       <div class="field">
         <label for="email">Email</label>
         <input pInputText
                id="email"
                type="email"
+               autocomplete="email"
                [(ngModel)]="email"
+               name="email"
                placeholder="you@example.com"
-               class="w-full"
-               (keyup.enter)="onSubmit()">
+               class="auth-input">
       </div>
 
       <div class="field">
         <label for="password">Password</label>
         <p-password id="password"
                     [(ngModel)]="password"
+                    name="password"
                     [feedback]="false"
                     [toggleMask]="true"
                     placeholder="Your password"
-                    styleClass="w-full"
-                    inputStyleClass="w-full"
-                    (keyup.enter)="onSubmit()">
+                    styleClass="auth-password"
+                    inputStyleClass="auth-input">
         </p-password>
       </div>
 
       <p-button label="Sign In"
+                type="submit"
                 [loading]="loading"
                 (onClick)="onSubmit()"
-                styleClass="w-full">
+                styleClass="auth-submit">
       </p-button>
-    </div>
+    </form>
 
     <div class="auth-footer">
       <span>Don't have an account?</span>

@@ -1,5 +1,5 @@
 import { Injectable } from '@angular/core';
-import { HttpClient } from '@angular/common/http';
+import { HttpClient, HttpParams } from '@angular/common/http';
 import { Observable } from 'rxjs';
 import { Country } from '../models/country.model';
 import { environment } from '../../../environments/environment';
@@ -20,6 +20,11 @@ export class CountryService {
       return this.http.get<Country[]>(this.baseUrl, { params: { continent } });
     }
     return this.http.get<Country[]>(this.baseUrl);
+  }
+
+  search(query: string): Observable<Country[]> {
+    const params = new HttpParams().set('search', query);
+    return this.http.get<Country[]>(this.baseUrl, { params });
   }
 
   create(data: Partial<Country>): Observable<Country> {

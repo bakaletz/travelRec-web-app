@@ -1,0 +1,119 @@
+<div class="search-autocomplete" [class.is-open]="open()">
+  <div class="search-input-wrap">
+    <i class="pi pi-search search-icon" aria-hidden="true"></i>
+    <input
+      #input
+      type="text"
+      class="search-input"
+      placeholder="Search cities or countries..."
+      autocomplete="off"
+      spellcheck="false"
+      [value]="query"
+      (input)="onInput($any($event.target).value)"
+      (focus)="onFocus()"
+      (keydown)="onKeydown($event)"
+      role="combobox"
+      aria-autocomplete="list"
+      aria-expanded="{{ open() }}"
+      aria-controls="search-listbox">
+
+    @if (loading()) {
+      <i class="pi pi-spin pi-spinner search-spinner" aria-hidden="true"></i>
+    } @else if (query.length > 0) {
+      <button type="button" class="search-clear" (click)="clear()" aria-label="Clear search">
+        <i class="pi pi-times"></i>
+      </button>
+    }
+  </div>
+
+  @if (open()) {
+    <div class="search-dropdown" id="search-listbox" role="listbox">
+
+      @if (showHint) {
+        <div class="search-hint">
+          <i class="pi pi-info-circle"></i>
+          <span>Type at least 2 characters to search</span>
+        </div>
+      }
+
+      @if (hasResults) {
+        @if (cityResults().length > 0) {
+          <div class="search-group">
+            <div class="search-group-label">
+              <i class="pi pi-map-marker"></i>
+              <span>Cities</span>
+            </div>
+            @for (item of cityResults(); track item.id) {
+              <button
+                type="button"
+                class="search-item"
+                [class.active]="isActive(item)"
+                (click)="select(item)"
+                (mouseenter)="activeIndex.set(itemIndex(item))"
+                role="option"
+                [attr.aria-selected]="isActive(item)">
+                @if (item.imageUrl) {
+                  <img [src]="item.imageUrl" [alt]="item.name" class="search-item-img">
+                } @else {
+                  <span class="search-item-img search-item-img-placeholder">
+                    {{ getInitials(item.name) }}
+                  </span>
+                }
+                <span class="search-item-text">
+                  <span class="search-item-name">{{ item.name }}</span>
+                  <span class="search-item-sub">{{ item.subtitle }}</span>
+                </span>
+                <i class="pi pi-arrow-right search-item-arrow"></i>
+              </button>
+            }
+          </div>
+        }
+
+        @if (countryResults().length > 0) {
+          <div class="search-group">
+            <div class="search-group-label">
+              <i class="pi pi-globe"></i>
+              <span>Countries</span>
+            </div>
+            @for (item of countryResults(); track item.id) {
+              <button
+                type="button"
+                class="search-item"
+                [class.active]="isActive(item)"
+                (click)="select(item)"
+                (mouseenter)="activeIndex.set(itemIndex(item))"
+                role="option"
+                [attr.aria-selected]="isActive(item)">
+                @if (item.imageUrl) {
+                  <img [src]="item.imageUrl" [alt]="item.name" class="search-item-img">
+                } @else {
+                  <span class="search-item-img search-item-img-placeholder">
+                    @if ($any(item).code) {
+                      {{ $any(item).code }}
+                    } @else {
+                      {{ getInitials(item.name) }}
+                    }
+                  </span>
+                }
+                <span class="search-item-text">
+                  <span class="search-item-name">{{ item.name }}</span>
+                  <span class="search-item-sub">{{ item.subtitle }}</span>
+                </span>
+                <i class="pi pi-arrow-right search-item-arrow"></i>
+              </button>
+            }
+          </div>
+        }
+      }
+
+      @if (showNoResults) {
+        <div class="search-empty">
+          <i class="pi pi-search"></i>
+          <p>No matches for "<strong>{{ query }}</strong>"</p>
+          <span>Try a different city or country name</span>
+        </div>
+      }
+
+    </div>
+  }
+</div>

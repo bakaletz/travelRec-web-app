@@ -4,8 +4,13 @@
       @if (city.imageUrl) {
       <img [src]="city.imageUrl" [alt]="city.name" class="card-image">
       }
+      @if (distance !== null) {
+      <span class="distance-badge">
+        <i class="pi pi-map-marker"></i> {{ formatDistance(distance) }}
+      </span>
+      }
       @if (score !== null) {
-      <span class="score-badge" [class.match]="scoreLabel === 'match'" [class.popular]="scoreLabel === 'popular'">
+      <span class="score-badge" [class.match]="scoreLabel === 'match'" [class.popular]="scoreLabel === 'popular'" [class.similarity]="scoreLabel === 'similarity'">
         @if (scoreLabel === 'popular') { &#9733; {{ city.popularity }} }
         @else { {{ formatScore(score) }} {{ scoreLabel }} }
       </span>
@@ -27,8 +32,13 @@
       @if (city.imageUrl) {
       <img [src]="city.imageUrl" [alt]="city.name" class="card-image">
       }
+      @if (distance !== null) {
+      <span class="distance-badge">
+        <i class="pi pi-map-marker"></i> {{ formatDistance(distance) }}
+      </span>
+      }
       @if (score !== null) {
-      <span class="score-badge" [class.match]="scoreLabel === 'match'" [class.popular]="scoreLabel === 'popular'">
+      <span class="score-badge" [class.match]="scoreLabel === 'match'" [class.popular]="scoreLabel === 'popular'" [class.similarity]="scoreLabel === 'similarity'">
         @if (scoreLabel === 'popular') { &#9733; {{ city.popularity }} }
         @else { {{ formatScore(score) }} {{ scoreLabel }} }
       </span>

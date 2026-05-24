@@ -106,7 +106,22 @@
         <app-city-carousel
           [cities]="nearbyCities"
           [score]="nearbyScoreFn"
+          [distance]="nearbyDistanceFn"
           scoreLabel="match"
+          [visibleCards]="3"
+          (addToTrip)="onAddToTripFromNearby($event)">
+        </app-city-carousel>
+      </section>
+      }
+
+      <!-- Similar cities -->
+      @if (similarCities.length > 0) {
+      <section class="section similar">
+        <h2 class="section-title">Similar Cities</h2>
+        <app-city-carousel
+          [cities]="similarCities"
+          [score]="similarScoreFn"
+          scoreLabel="similarity"
           [visibleCards]="3"
           (addToTrip)="onAddToTripFromNearby($event)">
         </app-city-carousel>

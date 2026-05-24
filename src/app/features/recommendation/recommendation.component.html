@@ -1,5 +1,62 @@
 <div class="recommendation-container">
 
+  <!-- Near You -->
+  <section class="section">
+    <div class="section-header">
+      <h2 class="section-title">Near You</h2>
+      <span class="section-subtitle">
+        @switch (nearbyMeState) {
+          @case ('idle') { Allow location access to see cities close to you }
+          @case ('loading') { Getting your location... }
+          @case ('granted') { Cities within {{ nearbyMeRadiusKm }} km of your location }
+          @case ('empty') { No cities found within {{ nearbyMeRadiusKm }} km of your location }
+          @case ('denied') { Location access was denied }
+          @case ('unavailable') { Unable to get your location }
+        }
+      </span>
+    </div>
+
+    @if (nearbyMeState === 'idle' || nearbyMeState === 'denied' || nearbyMeState === 'unavailable' || nearbyMeState === 'empty') {
+      <div class="nearby-me-prompt">
+        @if (nearbyMeState === 'denied') {
+          <p class="nearby-me-hint">To enable this feature, update your browser's location permissions for this site.</p>
+        }
+        @if (nearbyMeState !== 'denied') {
+          <button class="nearby-me-btn" (click)="requestNearbyMe()">
+            <i class="pi pi-map-marker"></i>
+            @if (nearbyMeState === 'empty') { Try again } @else { Use my location }
+          </button>
+        }
+      </div>
+    }
+
+    @if (nearbyMeState === 'loading') {
+      <div class="nearby-me-loading">
+        <i class="pi pi-spin pi-spinner"></i>
+        <span>Finding cities near you...</span>
+      </div>
+    }
+
+    @if (nearbyMeState === 'granted') {
+      <app-city-carousel [cities]="nearbyMeCities" [score]="nearbyMeScoreFn" [distance]="nearbyMeDistanceFn" scoreLabel="match"
+        (addToTrip)="onAddToTrip($event)">
+      </app-city-carousel>
+    }
+  </section>
+
+  @if (isAuthenticated && likedItems.length > 0) {
+  <!-- Because You Liked -->
+  <section class="section">
+    <div class="section-header">
+      <h2 class="section-title">More Like That</h2>
+      <span class="section-subtitle">{{ likedSeedLabel }}</span>
+    </div>
+
+    <app-city-carousel [cities]="likedCities" [score]="likedScoreFn" scoreLabel="similarity"
+      (addToTrip)="onAddToTrip($event)">
+    </app-city-carousel>
+  </section>
+  }
 
   @if (isAuthenticated) {
   <!-- Personalized -->

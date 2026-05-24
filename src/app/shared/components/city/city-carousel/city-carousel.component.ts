@@ -19,6 +19,7 @@ export class CityCarouselComponent implements AfterViewChecked {
   @Input() cities: City[] = [];
   @Input() score: ((city: City) => number | null) | null = null;
   @Input() scoreLabel: string = 'match';
+  @Input() distance: ((city: City) => number | null) | null = null;
   @Input() visibleCards: number = 5;
   @Output() addToTrip = new EventEmitter<City>();
   @Input() directAdd = false;
@@ -57,6 +58,10 @@ export class CityCarouselComponent implements AfterViewChecked {
 
   getScore(city: City): number | null {
     return this.score ? this.score(city) : null;
+  }
+
+  getDistance(city: City): number | null {
+    return this.distance ? this.distance(city) : null;
   }
 
   scroll(direction: 'left' | 'right'): void {

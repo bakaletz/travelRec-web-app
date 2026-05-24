@@ -6,12 +6,13 @@
   }
 
   <div class="scroll-wrapper" #wrapper>
-    <div class="card-row" [style.transform]="getTransform()">
+    <div class="card-row" [style.--cards]="visibleCards" [style.transform]="getTransform()">
       @for (city of cities; track city.id) {
       <app-city-card
         [city]="city"
         [score]="getScore(city)"
         [scoreLabel]="scoreLabel"
+        [distance]="getDistance(city)"
         [directAdd]="directAdd"
         (addToTrip)="onAddToTrip($event)">
       </app-city-card>

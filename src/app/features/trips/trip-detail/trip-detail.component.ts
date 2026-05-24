@@ -48,6 +48,11 @@ export class TripDetailComponent implements OnInit {
     return item ? item.similarityScore : null;
   };
 
+  nearbyDistanceFn = (city: City): number | null => {
+  const item = this.nearbyRecommendations.find(i => i.city.id === city.id);
+  return item ? item.distanceKm : null;
+};
+
   constructor(
     private route: ActivatedRoute,
     private router: Router,

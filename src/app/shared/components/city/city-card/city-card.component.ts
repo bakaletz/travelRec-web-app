@@ -40,6 +40,7 @@ export class CityCardComponent {
   @Input() city!: City;
   @Input() score: number | null = null;
   @Input() scoreLabel: string = 'match';
+  @Input() distance: number | null = null;
   @Output() addToTrip = new EventEmitter<City>();
   @Input() directAdd = false;
 
@@ -83,6 +84,13 @@ export class CityCardComponent {
   formatScore(value: number | null): string {
     if (value === null || value === undefined) return '';
     return (value * 100).toFixed(0) + '%';
+  }
+
+  formatDistance(value: number | null): string {
+    if (value === null || value === undefined) return '';
+    if (value < 1) return '<1 km';
+    if (value < 10) return value.toFixed(1) + ' km';
+    return Math.round(value) + ' km';
   }
 
   getMetaTagStyle(type: 'cityType' | 'climate', value: string): Record<string, string> {

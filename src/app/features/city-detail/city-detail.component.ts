@@ -67,6 +67,7 @@ export class CityDetailComponent implements OnInit {
 
   city: City | null = null;
   nearbyRecommendations: Recommendation[] = [];
+  similarRecommendations: Recommendation[] = [];
   loading = true;
   error = false;
   isAdmin = false;
@@ -114,6 +115,11 @@ export class CityDetailComponent implements OnInit {
     return item ? item.similarityScore : null;
   };
 
+  similarScoreFn = (city: City): number | null => {
+    const item = this.similarRecommendations.find(i => i.city.id === city.id);
+    return item ? item.similarityScore : null;
+  };
+
   private scoreConfig: { key: keyof City; label: string; icon: string }[] = [
     { key: 'cultureScore', label: 'Culture', icon: '🏛️' },
     { key: 'foodScore', label: 'Food', icon: '🍽️' },
@@ -155,14 +161,14 @@ export class CityDetailComponent implements OnInit {
     private authService: AuthService,
     private recommendationService: RecommendationService,
     private cdr: ChangeDetectorRef
-  ) {}
+  ) { }
 
   ngOnInit(): void {
     this.authService.currentUser$.subscribe(user => {
-  this.isAdmin = user?.role === 'ADMIN';
-  this.isLoggedIn = !!user;
-  this.cdr.detectChanges();
-});
+      this.isAdmin = user?.role === 'ADMIN';
+      this.isLoggedIn = !!user;
+      this.cdr.detectChanges();
+    });
 
     this.route.params.subscribe(params => {
       const id = +params['id'];
@@ -178,6 +184,10 @@ export class CityDetailComponent implements OnInit {
 
   get nearbyCities(): City[] {
     return this.nearbyRecommendations.map(i => i.city);
+  }
+
+  get similarCities(): City[] {
+    return this.similarRecommendations.map(i => i.city);
   }
 
   // ── Edit dialog ─────────────────────────────────
@@ -287,6 +297,11 @@ export class CityDetailComponent implements OnInit {
       .filter(s => s.value != null);
   }
 
+  nearbyDistanceFn = (city: City): number | null => {
+    const item = this.nearbyRecommendations.find(i => i.city.id === city.id);
+    return item ? item.distanceKm : null;
+  };
+
   formatScore(score: number | null): string {
     if (score === null || score === undefined) return '';
     return (score * 100).toFixed(0) + '%';
@@ -325,14 +340,14 @@ export class CityDetailComponent implements OnInit {
     };
   }
 
-   onAddToTrip(): void {
+  onAddToTrip(): void {
     if (!this.city) return;
     this.tripDialogCityId = this.city.id;
     this.tripDialogCityName = this.city.name;
     this.showTripDialog = true;
   }
 
-   onAddToTripFromNearby(city: City): void {
+  onAddToTripFromNearby(city: City): void {
     this.tripDialogCityId = city.id;
     this.tripDialogCityName = city.name;
     this.showTripDialog = true;
@@ -348,6 +363,8 @@ export class CityDetailComponent implements OnInit {
     this.loading = true;
     this.error = false;
     this.city = null;
+    this.nearbyRecommendations = [];
+    this.similarRecommendations = [];
 
     this.cityService.getById(id).subscribe({
       next: (city) => {
@@ -355,6 +372,7 @@ export class CityDetailComponent implements OnInit {
         this.loading = false;
         this.cdr.detectChanges();
         this.loadNearby(id);
+        this.loadSimilar(id);
       },
       error: (err) => {
         console.error('Failed to load city:', err);
@@ -372,6 +390,16 @@ export class CityDetailComponent implements OnInit {
         this.cdr.detectChanges();
       },
       error: () => this.nearbyRecommendations = []
+    });
+  }
+
+  private loadSimilar(cityId: number): void {
+    this.recommendationService.getSimilar(cityId, 6).subscribe({
+      next: (data) => {
+        this.similarRecommendations = data;
+        this.cdr.detectChanges();
+      },
+      error: () => this.similarRecommendations = []
     });
   }
 

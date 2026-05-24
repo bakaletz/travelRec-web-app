@@ -1,7 +1,7 @@
 .app-header {
   display: flex;
   align-items: center;
-  justify-content: space-between;
+  gap: 1.5rem;
   padding: 0 1.5rem;
   height: 60px;
   background: var(--surface-card, #fff);
@@ -12,6 +12,8 @@
 }
 
 .header-left {
+  flex-shrink: 0;
+
   .logo {
     font-size: 1.35rem;
     font-weight: 800;
@@ -21,10 +23,17 @@
   }
 }
 
+.header-search {
+  flex: 1 1 auto;
+  max-width: 420px;
+  min-width: 0;
+}
+
 .header-nav {
   display: flex;
   align-items: center;
   gap: 0.25rem;
+  flex-shrink: 0;
 
   .nav-link {
     font-size: 0.875rem;
@@ -52,6 +61,8 @@
   display: flex;
   align-items: center;
   position: relative;
+  flex-shrink: 0;
+  margin-left: auto;
 }
 
 .user-profile {
@@ -174,9 +185,33 @@
   margin: 0.3rem 0;
 }
 
-@media (max-width: 600px) {
+@media (max-width: 900px) {
+  .app-header {
+    gap: 1rem;
+    padding: 0 1rem;
+  }
+
+  .header-search {
+    max-width: 280px;
+  }
+
   .header-nav .nav-link {
-    font-size: 0.8rem;
-    padding: 0.4rem 0.65rem;
+    padding: 0.4rem 0.7rem;
+  }
+}
+
+@media (max-width: 680px) {
+  .header-nav {
+    display: none;
+  }
+
+  .header-search {
+    max-width: none;
+  }
+}
+
+@media (max-width: 480px) {
+  .user-profile .user-name {
+    display: none;
   }
 }

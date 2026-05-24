@@ -34,6 +34,13 @@ export class RecommendationComponent implements OnInit {
 
   personalizedItems: Recommendation[] = [];
   popularItems: Recommendation[] = [];
+  nearbyMeItems: Recommendation[] = [];
+  likedItems: Recommendation[] = [];
+
+  nearbyMeState: 'idle' | 'loading' | 'granted' | 'denied' | 'unavailable' | 'empty' = 'idle';
+  nearbyMeRadiusKm = 500;
+
+  likedSeedLabel: string | null = null;
 
   selectedContinents: string[] = [];
   selectedCityTypes: string[] = [];
@@ -76,6 +83,21 @@ export class RecommendationComponent implements OnInit {
     return city.popularity ?? null;
   };
 
+  nearbyMeScoreFn = (city: City): number | null => {
+    const item = this.nearbyMeItems.find(i => i.city.id === city.id);
+    return item ? item.similarityScore : null;
+  };
+
+  nearbyMeDistanceFn = (city: City): number | null => {
+    const item = this.nearbyMeItems.find(i => i.city.id === city.id);
+    return item ? item.distanceKm : null;
+  };
+
+  likedScoreFn = (city: City): number | null => {
+    const item = this.likedItems.find(i => i.city.id === city.id);
+    return item ? item.similarityScore : null;
+  };
+
   constructor(
     private service: RecommendationService,
     private authService: AuthService,
@@ -87,6 +109,10 @@ export class RecommendationComponent implements OnInit {
       this.isAuthenticated = !!user;
       if (this.isAuthenticated) {
         this.loadPersonalized();
+        this.loadBecauseYouLiked();
+      } else {
+        this.likedItems = [];
+        this.likedSeedLabel = null;
       }
       this.cdr.detectChanges();
     });
@@ -99,6 +125,14 @@ export class RecommendationComponent implements OnInit {
 
   get popularCities(): City[] {
     return this.popularItems.map(i => i.city);
+  }
+
+  get nearbyMeCities(): City[] {
+    return this.nearbyMeItems.map(i => i.city);
+  }
+
+  get likedCities(): City[] {
+    return this.likedItems.map(i => i.city);
   }
 
   applyFilters(): void {
@@ -120,6 +154,48 @@ export class RecommendationComponent implements OnInit {
 
   onAddToTrip(city: City): void {
     console.log('Add to trip:', city.name);
+  }
+
+  requestNearbyMe(): void {
+    if (!navigator.geolocation) {
+      this.nearbyMeState = 'unavailable';
+      this.cdr.detectChanges();
+      return;
+    }
+
+    this.nearbyMeState = 'loading';
+    this.cdr.detectChanges();
+
+    navigator.geolocation.getCurrentPosition(
+      (position) => {
+        const { latitude, longitude } = position.coords;
+        this.loadNearbyMe(latitude, longitude);
+      },
+      (error) => {
+        if (error.code === error.PERMISSION_DENIED) {
+          this.nearbyMeState = 'denied';
+        } else {
+          this.nearbyMeState = 'unavailable';
+        }
+        this.cdr.detectChanges();
+      },
+      { enableHighAccuracy: false, timeout: 10000, maximumAge: 300000 }
+    );
+  }
+
+  private loadNearbyMe(lat: number, lng: number): void {
+    this.service.getNearbyByCoordinates(lat, lng, this.nearbyMeRadiusKm, 10).subscribe({
+      next: (data) => {
+        this.nearbyMeItems = data;
+        this.nearbyMeState = data.length > 0 ? 'granted' : 'empty';
+        this.cdr.detectChanges();
+      },
+      error: (err) => {
+        console.error('Nearby-me error:', err);
+        this.nearbyMeState = 'unavailable';
+        this.cdr.detectChanges();
+      }
+    });
   }
 
   private loadPersonalized(): void {
@@ -144,6 +220,22 @@ export class RecommendationComponent implements OnInit {
         this.cdr.detectChanges();
       },
       error: (err) => console.error('Popular error:', err)
+    });
+  }
+
+  private loadBecauseYouLiked(): void {
+    this.service.getBecauseYouLiked(10).subscribe({
+      next: (data) => {
+        this.likedItems = data;
+        this.likedSeedLabel = data.length > 0 ? (data[0].reason ?? null) : null;
+        this.cdr.detectChanges();
+      },
+      error: (err) => {
+        console.error('Because-you-liked error:', err);
+        this.likedItems = [];
+        this.likedSeedLabel = null;
+        this.cdr.detectChanges();
+      }
     });
   }
 }

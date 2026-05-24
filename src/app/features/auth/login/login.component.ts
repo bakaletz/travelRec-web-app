@@ -1,4 +1,4 @@
-import { Component } from '@angular/core';
+import { Component, ChangeDetectorRef } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { Router, RouterLink } from '@angular/router';
 import { InputTextModule } from 'primeng/inputtext';
@@ -22,7 +22,8 @@ export class LoginComponent {
 
   constructor(
     private authService: AuthService,
-    private router: Router
+    private router: Router,
+    private cdr: ChangeDetectorRef
   ) {}
 
   onSubmit(): void {
@@ -41,6 +42,7 @@ export class LoginComponent {
       error: () => {
         this.error = 'Invalid email or password.';
         this.loading = false;
+        this.cdr.detectChanges();
       }
     });
   }

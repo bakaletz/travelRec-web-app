@@ -21,7 +21,7 @@
   transition: transform 0.35s ease;
 
   app-city-card {
-    flex: 0 0 calc((100% - 5rem) / 5);
+    flex: 0 0 calc((100% - (var(--cards, 5) - 1) * 1.25rem) / var(--cards, 5));
     min-width: 0;
   }
 }

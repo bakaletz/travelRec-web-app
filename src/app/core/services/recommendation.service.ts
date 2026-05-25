@@ -2,6 +2,7 @@ import { Injectable } from '@angular/core';
 import { HttpClient, HttpParams } from '@angular/common/http';
 import { Observable } from 'rxjs';
 import { Recommendation } from '../models/recommendation.model';
+import { TripRecommendation } from '../models/trip-recomendation.model';
 import { RecommendationFilters } from '../models/recommendation-filter.model';
 import { environment } from '../../../environments/environment';
 
@@ -62,6 +63,14 @@ export class RecommendationService {
       params = params.set('limit', limit);
     }
     return this.http.get<Recommendation[]>(`${this.apiUrl}/nearby-me`, { params });
+  }
+
+  getRecommendedTrips(continents?: string[]): Observable<TripRecommendation[]> {
+    let params = new HttpParams();
+    if (continents?.length) {
+      continents.forEach(c => params = params.append('continent', c));
+    }
+    return this.http.get<TripRecommendation[]>(`${this.apiUrl}/trips`, { params });
   }
 
   private buildParams(filters?: RecommendationFilters): HttpParams {

@@ -14,7 +14,14 @@ import { CityCarouselComponent } from '../../../shared/components/city/city-caro
   standalone: true,
   imports: [CommonModule, RouterModule, FormsModule, CityCarouselComponent],
   templateUrl: './trip-detail.component.html',
-  styleUrls: ['./trip-detail.component.scss']
+  styleUrls: ['./trip-detail.component.scss'],
+  styles: [`
+    .field-error {
+      margin: 0.4rem 0 0 0;
+      font-size: 0.8rem;
+      color: #dc2626;
+    }
+  `]
 })
 export class TripDetailComponent implements OnInit {
 
@@ -39,6 +46,8 @@ export class TripDetailComponent implements OnInit {
   editingDates = false;
   editStartDate = '';
   editEndDate = '';
+  dateError: string | null = null;
+  completeError: string | null = null;
 
   dragIndex: number | null = null;
   dragOverIndex: number | null = null;
@@ -169,6 +178,15 @@ export class TripDetailComponent implements OnInit {
 
   saveDates(): void {
     if (!this.trip) return;
+
+    if (this.editStartDate && this.editEndDate
+        && new Date(this.editStartDate).getTime() > new Date(this.editEndDate).getTime()) {
+      this.dateError = 'Start date cannot be after end date';
+      this.cdr.detectChanges();
+      return;
+    }
+    this.dateError = null;
+
     this.tripService.updateTrip(this.trip.id, {
       name: this.trip.name,
       startDate: this.editStartDate || undefined,
@@ -232,6 +250,20 @@ export class TripDetailComponent implements OnInit {
 
   completeTrip(): void {
     if (!this.trip) return;
+
+    this.completeError = null;
+
+    if (!this.trip.startDate || !this.trip.endDate) {
+      this.completeError = 'Add start and end dates before completing this trip';
+      this.cdr.detectChanges();
+      return;
+    }
+    if (new Date(this.trip.startDate).getTime() > new Date(this.trip.endDate).getTime()) {
+      this.completeError = 'Start date cannot be after end date';
+      this.cdr.detectChanges();
+      return;
+    }
+
     this.actionLoading = true;
     this.tripService.completeTrip(this.trip.id).subscribe({
       next: (trip) => {
@@ -239,7 +271,8 @@ export class TripDetailComponent implements OnInit {
         this.actionLoading = false;
         this.cdr.detectChanges();
       },
-      error: () => {
+      error: (err) => {
+        this.completeError = err?.error?.message ?? 'Could not complete this trip';
         this.actionLoading = false;
         this.cdr.detectChanges();
       }
@@ -421,6 +454,4 @@ private haversine(a: { latitude: number | null; longitude: number | null },
       }
     });
   }
-
-
 }

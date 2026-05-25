@@ -1,5 +1,150 @@
 <div class="recommendation-container">
 
+  @if (isAuthenticated && (tripsState === 'loading' || recommendedTrips.length > 0)) {
+  <!-- Trips for You -->
+  <section class="section">
+    <div class="section-header">
+      <h2 class="section-title">Trips for You</h2>
+      <span class="section-subtitle">Itineraries matching how you like to travel</span>
+    </div>
+
+    <div class="trip-filters-bar">
+      <span class="filter-label">Continent</span>
+      <p-multiselect [options]="continentOptions" [(ngModel)]="selectedTripContinents" optionLabel="label"
+        optionValue="value" (onChange)="applyTripFilters()" placeholder="Anywhere" [maxSelectedLabels]="3"
+        selectedItemsLabel="{0} selected" display="chip" [filter]="false" [showToggleAll]="false"></p-multiselect>
+    </div>
+
+    @if (tripsState === 'loading') {
+      <div class="trips-loading">
+        <i class="pi pi-spin pi-spinner"></i>
+        <span>Building itineraries for you...</span>
+      </div>
+    }
+
+    @if (tripsState === 'loaded') {
+      <div class="trips-grid">
+        @for (trip of recommendedTrips; track $index) {
+          <div class="trip-card">
+            <div class="trip-card-header">
+              <span class="trip-duration">{{ trip.suggestedDurationDays }} {{ trip.suggestedDurationDays === 1 ? 'day' : 'days' }}</span>
+              <span class="trip-count">{{ trip.cities.length }} {{ trip.cities.length === 1 ? 'city' : 'cities' }}</span>
+              @if (trip.totalDistanceKm) {
+                <span class="trip-distance">{{ trip.totalDistanceKm | number:'1.0-0' }} km</span>
+              }
+              <span class="trip-match">{{ (trip.tripScore * 100) | number:'1.0-0' }}% match</span>
+            </div>
+
+            <div class="trip-route">
+              @for (city of trip.cities; track city.id; let last = $last) {
+                <span class="trip-stop">
+                  @if (city.imageUrl) {
+                    <img class="trip-stop-img" [src]="city.imageUrl" [alt]="city.name" />
+                  }
+                  <span class="trip-stop-name">{{ city.name }}</span>
+                  <span class="trip-stop-country">{{ city.countryName }}</span>
+                </span>
+                @if (!last) {
+                  <i class="pi pi-arrow-right trip-arrow"></i>
+                }
+              }
+            </div>
+
+            @if (trip.reason) {
+              <p class="trip-reason">{{ trip.reason }}</p>
+            }
+
+            <div class="trip-card-footer">
+              <div class="trip-scores">
+                <span class="trip-score-pill" title="How well the cities match your preferences">
+                  relevance {{ (trip.relevanceScore * 100) | number:'1.0-0' }}%
+                </span>
+                <span class="trip-score-pill" title="How well the cities fit together as a route">
+                  coherence {{ (trip.coherenceScore * 100) | number:'1.0-0' }}%
+                </span>
+              </div>
+
+              <button class="save-trip-btn"
+                [disabled]="savingTripIndex === $index || savedTripIndexes.has($index)"
+                (click)="saveTripAsTrip(trip, $index)">
+                @if (savedTripIndexes.has($index)) {
+                  <i class="pi pi-check"></i> Saved
+                } @else if (savingTripIndex === $index) {
+                  <i class="pi pi-spin pi-spinner"></i> Saving...
+                } @else {
+                  <i class="pi pi-plus"></i> Save as trip
+                }
+              </button>
+            </div>
+          </div>
+        }
+      </div>
+    }
+
+    @if (tripsState === 'empty') {
+      <div class="trips-empty">
+        @if (selectedTripContinents.length) {
+          No itineraries in the selected region yet — try a different continent.
+        } @else {
+          No itineraries to suggest yet. Complete and rate a few trips to get started.
+        }
+      </div>
+    }
+  </section>
+  }
+
+  @if (isAuthenticated) {
+  <!-- Personalized -->
+  <section class="section">
+    <div class="section-header">
+      <h2 class="section-title">Recommended for You</h2>
+      <span class="section-subtitle">Based on your preferences</span>
+    </div>
+    <div class="filters-bar">
+      <div class="filter-group">
+        <span class="filter-label">Continent</span>
+        <p-multiselect [options]="continentOptions" [(ngModel)]="selectedContinents" optionLabel="label"
+          optionValue="value" (onChange)="applyFilters()" placeholder="All Continents" [maxSelectedLabels]="3"
+          selectedItemsLabel="{0} selected" display="chip" [filter]="false" [showToggleAll]="false"></p-multiselect>
+      </div>
+
+      <div class="filter-group">
+        <span class="filter-label">City type</span>
+        <p-multiselect [options]="cityTypeOptions" [(ngModel)]="selectedCityTypes" optionLabel="label"
+          optionValue="value" (onChange)="applyFilters()" placeholder="All City Types" [maxSelectedLabels]="3"
+          selectedItemsLabel="{0} selected" display="chip" [filter]="false" [showToggleAll]="false"></p-multiselect>
+      </div>
+
+      <div class="filter-group">
+        <span class="filter-label">Climate</span>
+        <p-multiselect [options]="climateTypeOptions" [(ngModel)]="selectedClimateTypes" optionLabel="label"
+          optionValue="value" (onChange)="applyFilters()" placeholder="All Climates" [maxSelectedLabels]="3"
+          selectedItemsLabel="{0} selected" display="chip" [filter]="false" [showToggleAll]="false"></p-multiselect>
+      </div>
+      <button class="clear-btn" (click)="clearFilters()" [disabled]="!hasActiveFilters()">Clear all</button>
+    </div>
+
+    <app-city-carousel [cities]="personalizedCities" [score]="personalizedScoreFn" scoreLabel="match"
+      (addToTrip)="onAddToTrip($event)">
+    </app-city-carousel>
+  </section>
+
+  }
+
+  @if (isAuthenticated && likedItems.length > 0) {
+  <!-- Because You Liked -->
+  <section class="section">
+    <div class="section-header">
+      <h2 class="section-title">More Like That</h2>
+      <span class="section-subtitle">{{ likedSeedLabel }}</span>
+    </div>
+
+    <app-city-carousel [cities]="likedCities" [score]="likedScoreFn" scoreLabel="similarity"
+      (addToTrip)="onAddToTrip($event)">
+    </app-city-carousel>
+  </section>
+  }
+
   <!-- Near You -->
   <section class="section">
     <div class="section-header">
@@ -44,57 +189,6 @@
     }
   </section>
 
-  @if (isAuthenticated && likedItems.length > 0) {
-  <!-- Because You Liked -->
-  <section class="section">
-    <div class="section-header">
-      <h2 class="section-title">More Like That</h2>
-      <span class="section-subtitle">{{ likedSeedLabel }}</span>
-    </div>
-
-    <app-city-carousel [cities]="likedCities" [score]="likedScoreFn" scoreLabel="similarity"
-      (addToTrip)="onAddToTrip($event)">
-    </app-city-carousel>
-  </section>
-  }
-
-  @if (isAuthenticated) {
-  <!-- Personalized -->
-  <section class="section">
-    <div class="section-header">
-      <h2 class="section-title">Recommended for You</h2>
-      <span class="section-subtitle">Based on your preferences</span>
-    </div>
-    <div class="filters-bar">
-      <div class="filter-group">
-        <span class="filter-label">Continent</span>
-        <p-multiselect [options]="continentOptions" [(ngModel)]="selectedContinents" optionLabel="label"
-          optionValue="value" (onChange)="applyFilters()" placeholder="All Continents" [maxSelectedLabels]="3"
-          selectedItemsLabel="{0} selected" display="chip" [filter]="false" [showToggleAll]="false"></p-multiselect>
-      </div>
-
-      <div class="filter-group">
-        <span class="filter-label">City type</span>
-        <p-multiselect [options]="cityTypeOptions" [(ngModel)]="selectedCityTypes" optionLabel="label"
-          optionValue="value" (onChange)="applyFilters()" placeholder="All City Types" [maxSelectedLabels]="3"
-          selectedItemsLabel="{0} selected" display="chip" [filter]="false" [showToggleAll]="false"></p-multiselect>
-      </div>
-
-      <div class="filter-group">
-        <span class="filter-label">Climate</span>
-        <p-multiselect [options]="climateTypeOptions" [(ngModel)]="selectedClimateTypes" optionLabel="label"
-          optionValue="value" (onChange)="applyFilters()" placeholder="All Climates" [maxSelectedLabels]="3"
-          selectedItemsLabel="{0} selected" display="chip" [filter]="false" [showToggleAll]="false"></p-multiselect>
-      </div>
-      <button class="clear-btn" (click)="clearFilters()" [disabled]="!hasActiveFilters()">Clear all</button>
-    </div>
-
-    <app-city-carousel [cities]="personalizedCities" [score]="personalizedScoreFn" scoreLabel="match"
-      (addToTrip)="onAddToTrip($event)">
-    </app-city-carousel>
-  </section>
-
-  }
   <!-- Popular -->
   <section class="section">
     <div class="section-header">

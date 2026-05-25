@@ -47,6 +47,9 @@
         <button class="inline-btn save" (click)="saveDates()">✓</button>
         <button class="inline-btn cancel" (click)="cancelEditDates()">✕</button>
       </div>
+      @if (dateError) {
+      <p class="field-error">{{ dateError }}</p>
+      }
       } @else {
       <span class="meta-chip" (click)="startEditDates()" [class.editable]="isPlanned">
         📅 {{ formatDate(trip.startDate) }} — {{ formatDate(trip.endDate) }}
@@ -179,6 +182,9 @@
         <i class="pi pi-check"></i>
         Mark as Completed
       </button>
+      @if (completeError) {
+      <p class="field-error">{{ completeError }}</p>
+      }
       <button class="action-btn cancel-action" (click)="cancelTrip()" [disabled]="actionLoading">
         <i class="pi pi-times"></i>
         Cancel Trip

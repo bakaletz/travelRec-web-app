@@ -2,8 +2,11 @@ import { Component, OnInit, ChangeDetectorRef } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { CommonModule } from '@angular/common';
 import { RouterModule } from '@angular/router';
+import { concatMap, from, of, toArray } from 'rxjs';
 import { RecommendationService } from '../../core/services/recommendation.service';
+import { TripService } from '../../core/services/trip.service';
 import { Recommendation } from '../../core/models/recommendation.model';
+import { TripRecommendation } from '../../core/models/trip-recomendation.model';
 import { RecommendationFilters } from '../../core/models/recommendation-filter.model';
 import { City } from '../../core/models/city.model';
 import { MultiSelectModule } from 'primeng/multiselect';
@@ -36,6 +39,11 @@ export class RecommendationComponent implements OnInit {
   popularItems: Recommendation[] = [];
   nearbyMeItems: Recommendation[] = [];
   likedItems: Recommendation[] = [];
+  recommendedTrips: TripRecommendation[] = [];
+
+  tripsState: 'idle' | 'loading' | 'loaded' | 'empty' = 'idle';
+  savingTripIndex: number | null = null;
+  savedTripIndexes = new Set<number>();
 
   nearbyMeState: 'idle' | 'loading' | 'granted' | 'denied' | 'unavailable' | 'empty' = 'idle';
   nearbyMeRadiusKm = 500;
@@ -45,6 +53,8 @@ export class RecommendationComponent implements OnInit {
   selectedContinents: string[] = [];
   selectedCityTypes: string[] = [];
   selectedClimateTypes: string[] = [];
+
+  selectedTripContinents: string[] = [];
 
   continentOptions: FilterOption[] = [
     { label: 'Europe', value: 'EUROPE' },
@@ -100,6 +110,7 @@ export class RecommendationComponent implements OnInit {
 
   constructor(
     private service: RecommendationService,
+    private tripService: TripService,
     private authService: AuthService,
     private cdr: ChangeDetectorRef
   ) { }
@@ -110,9 +121,13 @@ export class RecommendationComponent implements OnInit {
       if (this.isAuthenticated) {
         this.loadPersonalized();
         this.loadBecauseYouLiked();
+        this.loadRecommendedTrips();
       } else {
         this.likedItems = [];
         this.likedSeedLabel = null;
+        this.recommendedTrips = [];
+        this.tripsState = 'idle';
+        this.savedTripIndexes.clear();
       }
       this.cdr.detectChanges();
     });
@@ -139,6 +154,10 @@ export class RecommendationComponent implements OnInit {
     this.loadPersonalized();
   }
 
+  applyTripFilters(): void {
+    this.loadRecommendedTrips();
+  }
+
   hasActiveFilters(): boolean {
     return this.selectedContinents.length > 0
       || this.selectedCityTypes.length > 0
@@ -154,6 +173,54 @@ export class RecommendationComponent implements OnInit {
 
   onAddToTrip(city: City): void {
     console.log('Add to trip:', city.name);
+  }
+
+  tripRouteLabel(trip: TripRecommendation): string {
+    return trip.cities.map(c => c.name).join(' → ');
+  }
+
+  saveTripAsTrip(trip: TripRecommendation, index: number): void {
+    if (this.savingTripIndex !== null || this.savedTripIndexes.has(index)) return;
+
+    this.savingTripIndex = index;
+    this.cdr.detectChanges();
+
+    const name = this.suggestTripName(trip);
+
+    this.tripService.createTrip({ name }).pipe(
+      concatMap(created =>
+        from(trip.cities.map((city, i) => ({ city, order: i + 1 }))).pipe(
+          concatMap(entry =>
+            this.tripService.addCityToTrip(created.id, {
+              cityId: entry.city.id,
+              visitOrder: entry.order
+            })
+          ),
+          toArray(),
+          concatMap(() => of(created))
+        )
+      )
+    ).subscribe({
+      next: () => {
+        this.savingTripIndex = null;
+        this.savedTripIndexes.add(index);
+        this.cdr.detectChanges();
+      },
+      error: (err) => {
+        console.error('Save-as-trip error:', err);
+        this.savingTripIndex = null;
+        this.cdr.detectChanges();
+      }
+    });
+  }
+
+  private suggestTripName(trip: TripRecommendation): string {
+    if (trip.cities.length === 1) {
+      return `${trip.cities[0].name} getaway`;
+    }
+    const first = trip.cities[0].name;
+    const last = trip.cities[trip.cities.length - 1].name;
+    return `${first} to ${last} (${trip.suggestedDurationDays} days)`;
   }
 
   requestNearbyMe(): void {
@@ -234,6 +301,27 @@ export class RecommendationComponent implements OnInit {
         console.error('Because-you-liked error:', err);
         this.likedItems = [];
         this.likedSeedLabel = null;
+        this.cdr.detectChanges();
+      }
+    });
+  }
+
+  private loadRecommendedTrips(): void {
+    this.tripsState = 'loading';
+    this.cdr.detectChanges();
+
+    const continents = this.selectedTripContinents.length ? this.selectedTripContinents : undefined;
+    this.service.getRecommendedTrips(continents).subscribe({
+      next: (data) => {
+        this.recommendedTrips = data;
+        this.tripsState = data.length > 0 ? 'loaded' : 'empty';
+        this.savedTripIndexes.clear();
+        this.cdr.detectChanges();
+      },
+      error: (err) => {
+        console.error('Recommended-trips error:', err);
+        this.recommendedTrips = [];
+        this.tripsState = 'empty';
         this.cdr.detectChanges();
       }
     });

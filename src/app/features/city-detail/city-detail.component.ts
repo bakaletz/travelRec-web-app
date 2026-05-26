@@ -68,6 +68,7 @@ export class CityDetailComponent implements OnInit {
   city: City | null = null;
   nearbyRecommendations: Recommendation[] = [];
   similarRecommendations: Recommendation[] = [];
+  cityMatchScore: number | null = null;
   loading = true;
   error = false;
   isAdmin = false;
@@ -340,6 +341,43 @@ export class CityDetailComponent implements OnInit {
     };
   }
 
+  getMatchBadgeStyle(): Record<string, string> {
+    return {
+      'position': 'absolute',
+      'bottom': '28px',
+      'right': '28px',
+      'display': 'flex',
+      'flex-direction': 'column',
+      'align-items': 'center',
+      'justify-content': 'center',
+      'padding': '10px 14px',
+      'background-color': '#2563eb',
+      'border-radius': '12px',
+      'box-shadow': '0 4px 14px rgba(37, 99, 235, 0.45)',
+      'z-index': '5',
+    };
+  }
+
+  getMatchValueStyle(): Record<string, string> {
+    return {
+      'font-size': '20px',
+      'font-weight': '700',
+      'line-height': '1',
+      'color': '#ffffff',
+    };
+  }
+
+  getMatchLabelStyle(): Record<string, string> {
+    return {
+      'font-size': '10px',
+      'font-weight': '600',
+      'text-transform': 'uppercase',
+      'letter-spacing': '0.5px',
+      'margin-top': '3px',
+      'color': 'rgba(255, 255, 255, 0.85)',
+    };
+  }
+
   onAddToTrip(): void {
     if (!this.city) return;
     this.tripDialogCityId = this.city.id;
@@ -365,6 +403,7 @@ export class CityDetailComponent implements OnInit {
     this.city = null;
     this.nearbyRecommendations = [];
     this.similarRecommendations = [];
+    this.cityMatchScore = null;
 
     this.cityService.getById(id).subscribe({
       next: (city) => {
@@ -373,11 +412,27 @@ export class CityDetailComponent implements OnInit {
         this.cdr.detectChanges();
         this.loadNearby(id);
         this.loadSimilar(id);
+        if (this.isLoggedIn) {
+          this.loadMatch(id);
+        }
       },
       error: (err) => {
         console.error('Failed to load city:', err);
         this.error = true;
         this.loading = false;
+        this.cdr.detectChanges();
+      }
+    });
+  }
+
+  private loadMatch(cityId: number): void {
+    this.recommendationService.getMatch(cityId).subscribe({
+      next: (data) => {
+        this.cityMatchScore = data.similarityScore;
+        this.cdr.detectChanges();
+      },
+      error: () => {
+        this.cityMatchScore = null;
         this.cdr.detectChanges();
       }
     });

@@ -60,6 +60,12 @@
           }
         </div>
       </div>
+      @if (cityMatchScore !== null) {
+      <div class="hero-match-badge" [ngStyle]="getMatchBadgeStyle()">
+        <span [ngStyle]="getMatchValueStyle()">{{ formatScore(cityMatchScore) }}</span>
+        <span [ngStyle]="getMatchLabelStyle()">match</span>
+      </div>
+      }
     </div>
   </section>
 

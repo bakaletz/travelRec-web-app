@@ -73,6 +73,14 @@ export class RecommendationService {
     return this.http.get<TripRecommendation[]>(`${this.apiUrl}/trips`, { params });
   }
 
+  getCountryCityMatches(countryId: number): Observable<Recommendation[]> {
+    return this.http.get<Recommendation[]>(`${this.apiUrl}/by-country/${countryId}`);
+  }
+
+  getMatch(cityId: number): Observable<Recommendation> {
+    return this.http.get<Recommendation>(`${this.apiUrl}/match/${cityId}`);
+  }
+
   private buildParams(filters?: RecommendationFilters): HttpParams {
   let params = new HttpParams();
   if (!filters) return params;

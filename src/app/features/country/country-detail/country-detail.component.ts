@@ -4,9 +4,11 @@ import { FormsModule } from '@angular/forms';
 import { ActivatedRoute, RouterModule } from '@angular/router';
 import { CountryService } from '../../../core/services/country.service';
 import { CityService } from '../../../core/services/city-detail.service';
+import { RecommendationService } from '../../../core/services/recommendation.service';
 import { AuthService } from '../../../core/services/auth.service';
 import { Country } from '../../../core/models/country.model';
 import { City } from '../../../core/models/city.model';
+import { Recommendation } from '../../../core/models/recommendation.model';
 import { ContinentLabelPipe } from '../../../shared/pipes/continent-label.pipe';
 import { CityCarouselComponent } from '../../../shared/components/city/city-carousel/city-carousel.component';
 
@@ -66,6 +68,13 @@ export class CountryDetailComponent implements OnInit {
   loading = true;
   error = false;
   isAdmin = false;
+  isAuthenticated = false;
+
+  private cityScores = new Map<number, number>();
+
+  cityScoreFn = (city: City): number | null => {
+    return this.cityScores.has(city.id) ? this.cityScores.get(city.id)! : null;
+  };
 
   cityDialogOpen = false;
   citySaving = false;
@@ -137,6 +146,7 @@ export class CountryDetailComponent implements OnInit {
     private route: ActivatedRoute,
     private countryService: CountryService,
     private cityService: CityService,
+    private recommendationService: RecommendationService,
     private authService: AuthService,
     private cdr: ChangeDetectorRef
   ) {}
@@ -144,6 +154,7 @@ export class CountryDetailComponent implements OnInit {
   ngOnInit(): void {
     this.authService.currentUser$.subscribe(user => {
       this.isAdmin = user?.role === 'ADMIN';
+      this.isAuthenticated = !!user;
       this.cdr.detectChanges();
     });
 
@@ -303,8 +314,29 @@ export class CountryDetailComponent implements OnInit {
       next: (cities) => {
         this.cities = cities;
         this.cdr.detectChanges();
+        if (this.isAuthenticated) {
+          this.loadCityScores(countryId);
+        }
       },
       error: () => this.cities = []
+    });
+  }
+
+  private loadCityScores(countryId: number): void {
+    this.recommendationService.getCountryCityMatches(countryId).subscribe({
+      next: (matches: Recommendation[]) => {
+        this.cityScores.clear();
+        for (const m of matches) {
+          if (m.similarityScore != null) {
+            this.cityScores.set(m.city.id, m.similarityScore);
+          }
+        }
+        this.cdr.detectChanges();
+      },
+      error: () => {
+        this.cityScores.clear();
+        this.cdr.detectChanges();
+      }
     });
   }
 

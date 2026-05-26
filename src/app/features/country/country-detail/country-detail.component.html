@@ -115,6 +115,8 @@
       @if (cities.length > 0) {
       <app-city-carousel
         [cities]="cities"
+        [score]="cityScoreFn"
+        scoreLabel="match"
         (addToTrip)="onAddToTrip($event)">
       </app-city-carousel>
       } @else {

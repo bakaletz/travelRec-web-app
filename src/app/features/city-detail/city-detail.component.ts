@@ -11,6 +11,7 @@ import { CityTypeLabelPipe } from '../../shared/pipes/city-type-label.pipe';
 import { ClimateTypeLabelPipe } from '../../shared/pipes/climate-type-label.pipe';
 import { CityCarouselComponent } from '../../shared/components/city/city-carousel/city-carousel.component';
 import { AddToTripDialogComponent } from '../../shared/components/add-to-trip-dialog/add-to-trip-dialog.component';
+import { RouteMapComponent, MapPoint } from '../../shared/components/route-map/route-map.component';
 
 interface ScoreEntry {
   label: string;
@@ -54,7 +55,8 @@ interface CityEditForm {
     CityTypeLabelPipe,
     ClimateTypeLabelPipe,
     CityCarouselComponent,
-    AddToTripDialogComponent
+    AddToTripDialogComponent,
+    RouteMapComponent
   ],
   templateUrl: './city-detail.component.html',
   styleUrls: ['./city-detail.component.scss']
@@ -185,6 +187,11 @@ export class CityDetailComponent implements OnInit {
 
   get nearbyCities(): City[] {
     return this.nearbyRecommendations.map(i => i.city);
+  }
+
+  get mapPoints(): MapPoint[] {
+    if (!this.city || this.city.latitude == null || this.city.longitude == null) return [];
+    return [{ lat: this.city.latitude, lng: this.city.longitude, label: this.city.name }];
   }
 
   get similarCities(): City[] {

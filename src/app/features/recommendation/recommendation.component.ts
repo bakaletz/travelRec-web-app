@@ -11,6 +11,7 @@ import { RecommendationFilters } from '../../core/models/recommendation-filter.m
 import { City } from '../../core/models/city.model';
 import { MultiSelectModule } from 'primeng/multiselect';
 import { CityCarouselComponent } from '../../shared/components/city/city-carousel/city-carousel.component';
+import { RouteMapComponent, MapPoint } from '../../shared/components/route-map/route-map.component';
 import { AuthService } from '../../core/services/auth.service';
 
 interface FilterOption {
@@ -26,7 +27,8 @@ interface FilterOption {
     CommonModule,
     RouterModule,
     MultiSelectModule,
-    CityCarouselComponent
+    CityCarouselComponent,
+    RouteMapComponent
   ],
   templateUrl: './recommendation.component.html',
   styleUrls: ['./recommendation.component.scss']
@@ -44,6 +46,8 @@ export class RecommendationComponent implements OnInit {
   tripsState: 'idle' | 'loading' | 'loaded' | 'empty' = 'idle';
   savingTripIndex: number | null = null;
   savedTripIndexes = new Set<number>();
+
+  mapModalTrip: TripRecommendation | null = null;
 
   nearbyMeState: 'idle' | 'loading' | 'granted' | 'denied' | 'unavailable' | 'empty' = 'idle';
   nearbyMeRadiusKm = 500;
@@ -156,6 +160,24 @@ export class RecommendationComponent implements OnInit {
 
   applyTripFilters(): void {
     this.loadRecommendedTrips();
+  }
+
+  openTripMap(trip: TripRecommendation): void {
+    this.mapModalTrip = trip;
+  }
+
+  closeTripMap(): void {
+    this.mapModalTrip = null;
+  }
+
+  tripMapPoints(trip: TripRecommendation): MapPoint[] {
+    return trip.cities
+      .filter(c => c.latitude != null && c.longitude != null)
+      .map(c => ({ lat: c.latitude as number, lng: c.longitude as number, label: c.name }));
+  }
+
+  tripMapTitle(trip: TripRecommendation): string {
+    return trip.cities.map(c => c.name).join(' → ');
   }
 
   hasActiveFilters(): boolean {

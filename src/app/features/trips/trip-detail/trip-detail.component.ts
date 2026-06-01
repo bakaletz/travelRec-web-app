@@ -8,11 +8,12 @@ import { Trip, TripCity, TripStatus } from '../../../core/models/trip.model';
 import { City } from '../../../core/models/city.model';
 import { Recommendation } from '../../../core/models/recommendation.model';
 import { CityCarouselComponent } from '../../../shared/components/city/city-carousel/city-carousel.component';
+import { RouteMapComponent, MapPoint } from '../../../shared/components/route-map/route-map.component';
 
 @Component({
   selector: 'app-trip-detail',
   standalone: true,
-  imports: [CommonModule, RouterModule, FormsModule, CityCarouselComponent],
+  imports: [CommonModule, RouterModule, FormsModule, CityCarouselComponent, RouteMapComponent],
   templateUrl: './trip-detail.component.html',
   styleUrls: ['./trip-detail.component.scss'],
   styles: [`
@@ -105,6 +106,12 @@ export class TripDetailComponent implements OnInit {
   get sortedCities(): TripCity[] {
     if (!this.trip) return [];
     return [...this.trip.cities].sort((a, b) => a.visitOrder - b.visitOrder);
+  }
+
+  get mapPoints(): MapPoint[] {
+    return this.sortedCities
+      .filter(c => c.latitude != null && c.longitude != null)
+      .map(c => ({ lat: c.latitude as number, lng: c.longitude as number, label: c.cityName }));
   }
 
   get nearbyCities(): City[] {

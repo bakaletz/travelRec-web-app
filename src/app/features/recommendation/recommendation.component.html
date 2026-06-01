@@ -33,6 +33,11 @@
                 <span class="trip-distance">{{ trip.totalDistanceKm | number:'1.0-0' }} km</span>
               }
               <span class="trip-match">{{ (trip.tripScore * 100) | number:'1.0-0' }}% match</span>
+              @if (tripMapPoints(trip).length > 1) {
+                <button class="trip-map-btn" (click)="openTripMap(trip)" title="View route on map" aria-label="View route on map">
+                  <i class="pi pi-map"></i>
+                </button>
+              }
             </div>
 
             <div class="trip-route">
@@ -88,6 +93,20 @@
         } @else {
           No itineraries to suggest yet. Complete and rate a few trips to get started.
         }
+      </div>
+    }
+
+    @if (mapModalTrip) {
+      <div class="map-modal-overlay" (click)="closeTripMap()">
+        <div class="map-modal" (click)="$event.stopPropagation()">
+          <div class="map-modal-header">
+            <span class="map-modal-title">{{ tripMapTitle(mapModalTrip) }}</span>
+            <button class="map-modal-close" (click)="closeTripMap()" aria-label="Close">
+              <i class="pi pi-times"></i>
+            </button>
+          </div>
+          <app-route-map [points]="tripMapPoints(mapModalTrip)" [showRoute]="true"></app-route-map>
+        </div>
       </div>
     }
   </section>

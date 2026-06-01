@@ -139,6 +139,13 @@
     <!-- Right column - scores -->
     <aside class="content-sidebar">
 
+      @if (mapPoints.length > 0) {
+      <div class="map-card">
+        <h3 class="scores-title">Location</h3>
+        <app-route-map [points]="mapPoints" [showRoute]="false"></app-route-map>
+      </div>
+      }
+
       <div class="scores-card">
         <h3 class="scores-title">City Scores</h3>
         <div class="scores-list">

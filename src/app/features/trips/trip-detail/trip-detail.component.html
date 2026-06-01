@@ -159,19 +159,33 @@
     }
 
     <!-- Nearby cities -->
-    @if (isPlanned && nearbyCities.length > 0) {
+    @if (isPlanned && sortedCities.length > 0) {
     <div class="nearby-section">
       <h2>Nearby Cities</h2>
       <p class="nearby-hint">Cities near your last stop — click + to add them to this trip</p>
-      <app-city-carousel 
-      [cities]="nearbyCities" 
-      [score]="nearbyScoreFn"
-      scoreLabel="match"
-      [visibleCards]="3"
-      [distance]="nearbyDistanceFn"
-      [directAdd]="true"
-      (addToTrip)="onAddNearbyToTrip($event)">
+
+      <div [style.display]="'flex'" [style.align-items]="'center'" [style.gap]="'8px'" [style.margin]="'0 0 14px'">
+        <span [style.font-size]="'13px'" [style.color]="'#6b7280'">Within</span>
+        @for (km of radiusOptions; track km) {
+        <button type="button" (click)="setNearbyRadius(km)" [style.padding]="'5px 12px'" [style.font-size]="'13px'"
+          [style.font-weight]="'500'" [style.cursor]="'pointer'" [style.border-radius]="'8px'"
+          [style.border]="nearbyRadiusKm === km ? '1px solid #2563eb' : '1px solid #d1d5db'"
+          [style.background-color]="nearbyRadiusKm === km ? '#2563eb' : '#ffffff'"
+          [style.color]="nearbyRadiusKm === km ? '#ffffff' : '#374151'">
+          {{ km }} km
+        </button>
+        }
+      </div>
+
+      @if (nearbyLoading) {
+      <p class="nearby-hint">Loading…</p>
+      } @else if (nearbyCities.length > 0) {
+      <app-city-carousel [cities]="nearbyCities" [score]="nearbyScoreFn" scoreLabel="match" [visibleCards]="3"
+        [distance]="nearbyDistanceFn" [directAdd]="true" (addToTrip)="onAddNearbyToTrip($event)">
       </app-city-carousel>
+      } @else {
+      <p class="nearby-hint">No cities found within {{ nearbyRadiusKm }} km — try a larger radius.</p>
+      }
     </div>
     }
   </div>

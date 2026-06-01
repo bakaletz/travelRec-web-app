@@ -67,6 +67,10 @@
     @if (sortedCities.length > 1) {
     <div class="route-preview">{{ getRouteString() }}</div>
     }
+
+    @if (mapPoints.length > 1) {
+    <app-route-map [points]="mapPoints" [showRoute]="true"></app-route-map>
+    }
   </div>
 
   <!-- ── Content grid ── -->

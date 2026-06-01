@@ -54,7 +54,7 @@ export class TripRateComponent implements OnInit {
     private tripService: TripService,
     private ratingService: RatingService,
     private cdr: ChangeDetectorRef
-  ) {}
+  ) { }
 
   ngOnInit(): void {
     this.route.params.subscribe(params => {

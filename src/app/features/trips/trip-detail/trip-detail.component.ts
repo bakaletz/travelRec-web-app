@@ -37,6 +37,8 @@ export class TripDetailComponent implements OnInit {
 
   nearbyRecommendations: Recommendation[] = [];
   nearbyLoading = false;
+  nearbyRadiusKm = 500;
+  radiusOptions = [200, 500, 1000];
 
   showTripDialog = false;
   tripDialogCityId: number | null = null;
@@ -59,9 +61,9 @@ export class TripDetailComponent implements OnInit {
   };
 
   nearbyDistanceFn = (city: City): number | null => {
-  const item = this.nearbyRecommendations.find(i => i.city.id === city.id);
-  return item ? item.distanceKm : null;
-};
+    const item = this.nearbyRecommendations.find(i => i.city.id === city.id);
+    return item ? item.distanceKm : null;
+  };
 
   constructor(
     private route: ActivatedRoute,
@@ -69,7 +71,7 @@ export class TripDetailComponent implements OnInit {
     private tripService: TripService,
     private recommendationService: RecommendationService,
     private cdr: ChangeDetectorRef
-  ) {}
+  ) { }
 
   ngOnInit(): void {
     this.route.params.subscribe(params => {
@@ -187,7 +189,7 @@ export class TripDetailComponent implements OnInit {
     if (!this.trip) return;
 
     if (this.editStartDate && this.editEndDate
-        && new Date(this.editStartDate).getTime() > new Date(this.editEndDate).getTime()) {
+      && new Date(this.editStartDate).getTime() > new Date(this.editEndDate).getTime()) {
       this.dateError = 'Start date cannot be after end date';
       this.cdr.detectChanges();
       return;
@@ -225,30 +227,30 @@ export class TripDetailComponent implements OnInit {
   }
 
   onDrop(event: DragEvent, dropIndex: number): void {
-  event.preventDefault();
-  if (this.dragIndex === null || this.dragIndex === dropIndex || !this.trip) {
+    event.preventDefault();
+    if (this.dragIndex === null || this.dragIndex === dropIndex || !this.trip) {
+      this.dragIndex = null;
+      this.dragOverIndex = null;
+      return;
+    }
+
+    const cities = this.sortedCities;
+    const [moved] = cities.splice(this.dragIndex, 1);
+    cities.splice(dropIndex, 0, moved);
+    cities.forEach((city, i) => city.visitOrder = i + 1);
+    this.trip.cities = cities;
     this.dragIndex = null;
     this.dragOverIndex = null;
-    return;
+    this.cdr.detectChanges();
+
+    const cityIds = cities.map(c => c.cityId);
+    this.tripService.reorderCities(this.trip.id, cityIds).subscribe({
+      next: (trip) => {
+        this.trip = trip;
+        this.cdr.detectChanges();
+      }
+    });
   }
-
-  const cities = this.sortedCities;
-  const [moved] = cities.splice(this.dragIndex, 1);
-  cities.splice(dropIndex, 0, moved);
-  cities.forEach((city, i) => city.visitOrder = i + 1);
-  this.trip.cities = cities;
-  this.dragIndex = null;
-  this.dragOverIndex = null;
-  this.cdr.detectChanges();
-
-  const cityIds = cities.map(c => c.cityId);
-  this.tripService.reorderCities(this.trip.id, cityIds).subscribe({
-    next: (trip) => {
-      this.trip = trip;
-      this.cdr.detectChanges();
-    }
-  });
-}
 
   onDragEnd(): void {
     this.dragIndex = null;
@@ -353,20 +355,20 @@ export class TripDetailComponent implements OnInit {
     });
   }
 
- onAddNearbyToTrip(city: City): void {
-  if (!this.trip) return;
-  const visitOrder = this.trip.cities.length + 1;
-  this.tripService.addCityToTrip(this.trip.id, {
-    cityId: city.id,
-    visitOrder
-  }).subscribe({
-    next: (trip) => {
-      this.trip = trip;
-      this.loadNearby();
-      this.cdr.detectChanges();
-    }
-  });
-}
+  onAddNearbyToTrip(city: City): void {
+    if (!this.trip) return;
+    const visitOrder = this.trip.cities.length + 1;
+    this.tripService.addCityToTrip(this.trip.id, {
+      cityId: city.id,
+      visitOrder
+    }).subscribe({
+      next: (trip) => {
+        this.trip = trip;
+        this.loadNearby();
+        this.cdr.detectChanges();
+      }
+    });
+  }
   onTripDialogClose(): void {
     this.showTripDialog = false;
   }
@@ -381,65 +383,65 @@ export class TripDetailComponent implements OnInit {
   }
 
   isRouteSuboptimal(index: number): boolean {
-  const cities = this.sortedCities;
-  if (index === 0 || cities.length < 3) return false;
+    const cities = this.sortedCities;
+    if (index === 0 || cities.length < 3) return false;
 
-  const prev = cities[index - 1];
-  const curr = cities[index];
-  const next = cities[index + 1];
+    const prev = cities[index - 1];
+    const curr = cities[index];
+    const next = cities[index + 1];
 
-  if (!prev.latitude || !curr.latitude) return false;
+    if (!prev.latitude || !curr.latitude) return false;
 
-  const distPrevCurr = this.haversine(prev, curr);
+    const distPrevCurr = this.haversine(prev, curr);
 
-  if (!next?.latitude) return false;
+    if (!next?.latitude) return false;
 
-  const distCurrNext = this.haversine(curr, next);
-  const distPrevNext = this.haversine(prev, next);
+    const distCurrNext = this.haversine(curr, next);
+    const distPrevNext = this.haversine(prev, next);
 
-  return distPrevCurr + distCurrNext > distPrevNext * 1.8;
-}
-
-getTotalDistance(): number {
-  let total = 0;
-  const cities = this.sortedCities;
-  for (let i = 1; i < cities.length; i++) {
-    if (cities[i - 1].latitude && cities[i].latitude) {
-      total += this.haversine(cities[i - 1], cities[i]);
-    }
+    return distPrevCurr + distCurrNext > distPrevNext * 1.8;
   }
-  return Math.round(total);
-}
 
-optimizeRoute(): void {
-  if (!this.trip) return;
-  this.optimizing = true;
-  this.tripService.optimizeRoute(this.trip.id).subscribe({
-    next: (trip) => {
-      this.trip = trip;
-      this.optimizing = false;
-      this.cdr.detectChanges();
-    },
-    error: () => {
-      this.optimizing = false;
-      this.cdr.detectChanges();
+  getTotalDistance(): number {
+    let total = 0;
+    const cities = this.sortedCities;
+    for (let i = 1; i < cities.length; i++) {
+      if (cities[i - 1].latitude && cities[i].latitude) {
+        total += this.haversine(cities[i - 1], cities[i]);
+      }
     }
-  });
-}
+    return Math.round(total);
+  }
+
+  optimizeRoute(): void {
+    if (!this.trip) return;
+    this.optimizing = true;
+    this.tripService.optimizeRoute(this.trip.id).subscribe({
+      next: (trip) => {
+        this.trip = trip;
+        this.optimizing = false;
+        this.cdr.detectChanges();
+      },
+      error: () => {
+        this.optimizing = false;
+        this.cdr.detectChanges();
+      }
+    });
+  }
 
 
-private haversine(a: { latitude: number | null; longitude: number | null },
-                  b: { latitude: number | null; longitude: number | null }): number {
-  if (!a.latitude || !a.longitude || !b.latitude || !b.longitude) return 0;
-  const R = 6371;
-  const dLat = (b.latitude - a.latitude) * Math.PI / 180;
-  const dLon = (b.longitude - a.longitude) * Math.PI / 180;
-  const lat1 = a.latitude * Math.PI / 180;
-  const lat2 = b.latitude * Math.PI / 180;
-  const h = Math.sin(dLat / 2) ** 2 +
-            Math.cos(lat1) * Math.cos(lat2) * Math.sin(dLon / 2) ** 2;
-  return R * 2 * Math.atan2(Math.sqrt(h), Math.sqrt(1 - h));
-}
+  private haversine(a: { latitude: number | null; longitude: number | null },
+    b: { latitude: number | null; longitude: number | null }): number {
+    if (!a.latitude || !a.longitude || !b.latitude || !b.longitude) return 0;
+    const R = 6371;
+    const dLat = (b.latitude - a.latitude) * Math.PI / 180;
+    const dLon = (b.longitude - a.longitude) * Math.PI / 180;
+    const lat1 = a.latitude * Math.PI / 180;
+    const lat2 = b.latitude * Math.PI / 180;
+    const h = Math.sin(dLat / 2) ** 2 +
+      Math.cos(lat1) * Math.cos(lat2) * Math.sin(dLon / 2) ** 2;
+    return R * 2 * Math.atan2(Math.sqrt(h), Math.sqrt(1 - h));
+  }
 
   private loadNearby(): void {
     if (!this.trip || this.trip.cities.length === 0) {
@@ -448,7 +450,7 @@ private haversine(a: { latitude: number | null; longitude: number | null },
     }
     const lastCity = this.sortedCities[this.sortedCities.length - 1];
     this.nearbyLoading = true;
-    this.recommendationService.getNearby(lastCity.cityId, 500, 8).subscribe({
+    this.recommendationService.getNearby(lastCity.cityId, this.nearbyRadiusKm, 8).subscribe({
       next: (data) => {
         const tripCityIds = new Set(this.trip!.cities.map(c => c.cityId));
         this.nearbyRecommendations = data.filter(r => !tripCityIds.has(r.city.id));
@@ -461,4 +463,11 @@ private haversine(a: { latitude: number | null; longitude: number | null },
       }
     });
   }
+
+  setNearbyRadius(km: number): void {
+    if (this.nearbyRadiusKm === km) return;
+    this.nearbyRadiusKm = km;
+    this.loadNearby();
+  }
+
 }

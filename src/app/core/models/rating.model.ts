@@ -40,3 +40,17 @@ export interface DetailedRatingRequest {
   shoppingRating?: number;
   feedback?: string;
 }
+
+export interface UserCityRating {
+  ratingCount: number;
+  overallScore: number | null;
+  cultureRating: number | null;
+  foodRating: number | null;
+  nightlifeRating: number | null;
+  natureRating: number | null;
+  safetyRating: number | null;
+  costRating: number | null;
+  beachRating: number | null;
+  architectureRating: number | null;
+  shoppingRating: number | null;
+}

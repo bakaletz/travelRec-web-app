@@ -3,6 +3,7 @@ import { HttpClient } from '@angular/common/http';
 import { Observable } from 'rxjs';
 import { RatingResponse, QuickRatingRequest, DetailedRatingRequest } from '../models/rating.model';
 import { environment } from '../../../environments/environment';
+import { UserCityRating } from '../models/rating.model';
 
 @Injectable({
   providedIn: 'root'
@@ -32,4 +33,8 @@ export class RatingService {
   updateRating(id: number, request: DetailedRatingRequest): Observable<RatingResponse> {
     return this.http.put<RatingResponse>(`${this.apiUrl}/${id}`, request);
   }
+
+  getUserCityRating(cityId: number): Observable<UserCityRating> {
+  return this.http.get<UserCityRating>(`${this.apiUrl}/city/${cityId}/me`);
+}
 }

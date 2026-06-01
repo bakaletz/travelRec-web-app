@@ -12,11 +12,15 @@ import { ClimateTypeLabelPipe } from '../../shared/pipes/climate-type-label.pipe
 import { CityCarouselComponent } from '../../shared/components/city/city-carousel/city-carousel.component';
 import { AddToTripDialogComponent } from '../../shared/components/add-to-trip-dialog/add-to-trip-dialog.component';
 import { RouteMapComponent, MapPoint } from '../../shared/components/route-map/route-map.component';
+import { RatingService } from '../../core/services/rating.service';
+import { UserCityRating } from '../../core/models/rating.model';
 
 interface ScoreEntry {
   label: string;
   icon: string;
   value: number;
+  myRaw: number | null;
+  myValue: number | null;
 }
 
 interface CityEditForm {
@@ -71,6 +75,7 @@ export class CityDetailComponent implements OnInit {
   nearbyRecommendations: Recommendation[] = [];
   similarRecommendations: Recommendation[] = [];
   cityMatchScore: number | null = null;
+  myRating: UserCityRating | null = null;
   loading = true;
   error = false;
   isAdmin = false;
@@ -135,6 +140,20 @@ export class CityDetailComponent implements OnInit {
     { key: 'shoppingScore', label: 'Shopping', icon: '🛍️' },
   ];
 
+  private myRatingKeyByLabel: Record<string, keyof UserCityRating> = {
+    'Culture': 'cultureRating',
+    'Food': 'foodRating',
+    'Nightlife': 'nightlifeRating',
+    'Nature': 'natureRating',
+    'Safety': 'safetyRating',
+    'Cost': 'costRating',
+    'Beach': 'beachRating',
+    'Architecture': 'architectureRating',
+    'Shopping': 'shoppingRating',
+  };
+
+
+
   private infraConfig: { key: keyof City; label: string; icon: string }[] = [
     { key: 'publicTransportScore', label: 'Public Transport', icon: '🚇' },
     { key: 'walkabilityScore', label: 'Walkability', icon: '🚶' },
@@ -163,6 +182,7 @@ export class CityDetailComponent implements OnInit {
     private cityService: CityService,
     private authService: AuthService,
     private recommendationService: RecommendationService,
+    private ratingService: RatingService,
     private cdr: ChangeDetectorRef
   ) { }
 
@@ -283,27 +303,59 @@ export class CityDetailComponent implements OnInit {
   // ── Scores ──────────────────────────────────────
 
   getAllScores(): ScoreEntry[] {
-    if (!this.city) return [];
-    return this.scoreConfig
-      .map(c => ({
+  if (!this.city) return [];
+  return this.scoreConfig
+    .map(c => {
+      const raw = this.myRatingValue(c.label);
+      return {
         label: c.label,
         icon: c.icon,
-        value: this.city![c.key] as number
-      }))
-      .filter(s => s.value != null)
-      .sort((a, b) => b.value - a.value);
-  }
+        value: this.city![c.key] as number,
+        myRaw: raw,
+        myValue: raw !== null ? this.normalizeRating(raw) : null,
+      };
+    })
+    .filter(s => s.value != null)
+    .sort((a, b) => b.value - a.value);
+}
 
-  getInfraScores(): ScoreEntry[] {
-    if (!this.city) return [];
-    return this.infraConfig
-      .map(c => ({
-        label: c.label,
-        icon: c.icon,
-        value: this.city![c.key] as number
-      }))
-      .filter(s => s.value != null);
-  }
+getInfraScores(): ScoreEntry[] {
+  if (!this.city) return [];
+  return this.infraConfig
+    .map(c => ({
+      label: c.label,
+      icon: c.icon,
+      value: this.city![c.key] as number,
+      myRaw: null,
+      myValue: null,
+    }))
+    .filter(s => s.value != null);
+}
+
+private myRatingValue(label: string): number | null {
+  if (!this.myRating || this.myRating.ratingCount === 0) return null;
+  const key = this.myRatingKeyByLabel[label];
+  if (!key) return null;
+  const v = this.myRating[key];
+  return typeof v === 'number' ? v : null;
+}
+
+private normalizeRating(value: number): number {
+  return Math.min(1, Math.max(0, (value - 1) / 4));
+}
+
+getMyMarkerStyle(myValue: number): Record<string, string> {
+  return {
+    'position': 'absolute',
+    'left': `calc(${(myValue * 100).toFixed(1)}% - 1px)`,
+    'top': '-2px',
+    'bottom': '-2px',
+    'width': '2px',
+    'background-color': '#111827',
+    'border-radius': '1px',
+    'z-index': '2',
+  };
+}
 
   nearbyDistanceFn = (city: City): number | null => {
     const item = this.nearbyRecommendations.find(i => i.city.id === city.id);
@@ -421,6 +473,7 @@ export class CityDetailComponent implements OnInit {
         this.loadSimilar(id);
         if (this.isLoggedIn) {
           this.loadMatch(id);
+          this.loadMyRating(id);
         }
       },
       error: (err) => {
@@ -444,6 +497,19 @@ export class CityDetailComponent implements OnInit {
       }
     });
   }
+
+  private loadMyRating(cityId: number): void {
+  this.ratingService.getUserCityRating(cityId).subscribe({
+    next: (data) => {
+      this.myRating = data.ratingCount > 0 ? data : null;
+      this.cdr.detectChanges();
+    },
+    error: () => {
+      this.myRating = null;
+      this.cdr.detectChanges();
+    }
+  });
+}
 
   private loadNearby(cityId: number): void {
     this.recommendationService.getNearby(cityId, 300, 6).subscribe({

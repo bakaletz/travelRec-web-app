@@ -286,6 +286,14 @@ export class TripDetailComponent implements OnInit {
         this.cdr.detectChanges();
       }
     });
+  
+    const todayEnd = new Date();
+    todayEnd.setHours(23, 59, 59, 999);
+    if (new Date(this.trip.endDate).getTime() > todayEnd.getTime()) {
+      this.completeError = 'You can complete this trip only after it ends';
+      this.cdr.detectChanges();
+      return;
+    }
   }
 
   cancelTrip(): void {

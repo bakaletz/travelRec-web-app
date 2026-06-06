@@ -12,6 +12,7 @@ import { City } from '../../core/models/city.model';
 import { MultiSelectModule } from 'primeng/multiselect';
 import { CityCarouselComponent } from '../../shared/components/city/city-carousel/city-carousel.component';
 import { RouteMapComponent, MapPoint } from '../../shared/components/route-map/route-map.component';
+import { TripCarouselComponent } from '../../shared/components/trip/trip-carousel/trip-carousel.component';
 import { AuthService } from '../../core/services/auth.service';
 
 interface FilterOption {
@@ -28,7 +29,8 @@ interface FilterOption {
     RouterModule,
     MultiSelectModule,
     CityCarouselComponent,
-    RouteMapComponent
+    RouteMapComponent,
+    TripCarouselComponent
   ],
   templateUrl: './recommendation.component.html',
   styleUrls: ['./recommendation.component.scss']
@@ -110,6 +112,10 @@ export class RecommendationComponent implements OnInit {
   likedScoreFn = (city: City): number | null => {
     const item = this.likedItems.find(i => i.city.id === city.id);
     return item ? item.similarityScore : null;
+  };
+
+  tripShowMapFn = (trip: TripRecommendation): boolean => {
+    return this.tripMapPoints(trip).length > 1;
   };
 
   constructor(

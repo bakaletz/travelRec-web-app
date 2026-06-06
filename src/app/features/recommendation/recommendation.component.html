@@ -23,67 +23,14 @@
     }
 
     @if (tripsState === 'loaded') {
-      <div class="trips-grid">
-        @for (trip of recommendedTrips; track $index) {
-          <div class="trip-card">
-            <div class="trip-card-header">
-              <span class="trip-duration">{{ trip.suggestedDurationDays }} {{ trip.suggestedDurationDays === 1 ? 'day' : 'days' }}</span>
-              <span class="trip-count">{{ trip.cities.length }} {{ trip.cities.length === 1 ? 'city' : 'cities' }}</span>
-              @if (trip.totalDistanceKm) {
-                <span class="trip-distance">{{ trip.totalDistanceKm | number:'1.0-0' }} km</span>
-              }
-              <span class="trip-match">{{ (trip.tripScore * 100) | number:'1.0-0' }}% match</span>
-              @if (tripMapPoints(trip).length > 1) {
-                <button class="trip-map-btn" (click)="openTripMap(trip)" title="View route on map" aria-label="View route on map">
-                  <i class="pi pi-map"></i>
-                </button>
-              }
-            </div>
-
-            <div class="trip-route">
-              @for (city of trip.cities; track city.id; let last = $last) {
-                <span class="trip-stop">
-                  @if (city.imageUrl) {
-                    <img class="trip-stop-img" [src]="city.imageUrl" [alt]="city.name" />
-                  }
-                  <span class="trip-stop-name">{{ city.name }}</span>
-                  <span class="trip-stop-country">{{ city.countryName }}</span>
-                </span>
-                @if (!last) {
-                  <i class="pi pi-arrow-right trip-arrow"></i>
-                }
-              }
-            </div>
-
-            @if (trip.reason) {
-              <p class="trip-reason">{{ trip.reason }}</p>
-            }
-
-            <div class="trip-card-footer">
-              <div class="trip-scores">
-                <span class="trip-score-pill" title="How well the cities match your preferences">
-                  relevance {{ (trip.relevanceScore * 100) | number:'1.0-0' }}%
-                </span>
-                <span class="trip-score-pill" title="How well the cities fit together as a route">
-                  coherence {{ (trip.coherenceScore * 100) | number:'1.0-0' }}%
-                </span>
-              </div>
-
-              <button class="save-trip-btn"
-                [disabled]="savingTripIndex === $index || savedTripIndexes.has($index)"
-                (click)="saveTripAsTrip(trip, $index)">
-                @if (savedTripIndexes.has($index)) {
-                  <i class="pi pi-check"></i> Saved
-                } @else if (savingTripIndex === $index) {
-                  <i class="pi pi-spin pi-spinner"></i> Saving...
-                } @else {
-                  <i class="pi pi-plus"></i> Save as trip
-                }
-              </button>
-            </div>
-          </div>
-        }
-      </div>
+      <app-trip-carousel
+        [trips]="recommendedTrips"
+        [savingTripIndex]="savingTripIndex"
+        [savedTripIndexes]="savedTripIndexes"
+        [showMap]="tripShowMapFn"
+        (saveTrip)="saveTripAsTrip($event.trip, $event.index)"
+        (openMap)="openTripMap($event)">
+      </app-trip-carousel>
     }
 
     @if (tripsState === 'empty') {
